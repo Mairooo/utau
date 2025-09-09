@@ -20,6 +20,8 @@ export class AuthService {
   private readonly router = inject(Router);
 
   get accessToken(): string | null {
+    const isBrowser = typeof window !== 'undefined' && typeof localStorage !== 'undefined';
+    if (!isBrowser) return null;
     return localStorage.getItem(ACCESS_TOKEN_KEY);
   }
 
