@@ -19,7 +19,7 @@
         <a class="font-medium text-gray-900">Home</a>
         <a class="hover:text-gray-900 transition-colors">Compose</a>
         <a class="hover:text-gray-900 transition-colors">Search</a>
-        <a class="hover:text-gray-900 transition-colors">Profile</a>
+        <a routerLink="/profile" class="hover:text-gray-900 transition-colors">Profile</a>
       </nav>
       
       <!-- Actions -->
@@ -112,7 +112,7 @@
               <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.369 4.369 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z"/>
             </svg>
           </div>
-          <div class="text-3xl font-bold text-gray-900">6</div>
+          <div class="text-3xl font-bold text-gray-900">{{ totalProjects }}</div>
           <div class="text-sm text-gray-500">Projets</div>
         </div>
         <div class="rounded-xl border border-gray-200 p-6 bg-white hover:shadow-md transition-shadow">
@@ -121,7 +121,7 @@
               <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
             </svg>
           </div>
-          <div class="text-3xl font-bold text-gray-900">850+</div>
+          <div class="text-3xl font-bold text-gray-900">{{ totalCreators }}</div>
           <div class="text-sm text-gray-500">Créateurs</div>
         </div>
         <div class="rounded-xl border border-gray-200 p-6 bg-white hover:shadow-md transition-shadow">
@@ -130,7 +130,7 @@
               <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/>
             </svg>
           </div>
-          <div class="text-3xl font-bold text-gray-900">1434</div>
+          <div class="text-3xl font-bold text-gray-900">{{ totalLikes }}</div>
           <div class="text-sm text-gray-500">Likes</div>
         </div>
         <div class="rounded-xl border border-gray-200 p-6 bg-white hover:shadow-md transition-shadow">
@@ -139,7 +139,7 @@
               <path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM15.657 6.343a1 1 0 011.414 0A9.972 9.972 0 0119 12a9.972 9.972 0 01-1.929 5.657 1 1 0 11-1.414-1.414A7.971 7.971 0 0017 12a7.971 7.971 0 00-1.343-4.243 1 1 0 010-1.414z" clip-rule="evenodd"/>
             </svg>
           </div>
-          <div class="text-3xl font-bold text-gray-900">6830</div>
+          <div class="text-3xl font-bold text-gray-900">{{ totalPlays }}</div>
           <div class="text-sm text-gray-500">Écoutes</div>
         </div>
       </div>
