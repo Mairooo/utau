@@ -15,5 +15,15 @@ export const routes: Routes = [
     canActivate: [() => import('./auth/auth.guard').then(m => m.authGuard)],
     loadComponent: () => import('./profile/profile.component').then(m => m.ProfileComponent)
   },
+  {
+    path: 'settings',
+    canActivate: [() => import('./auth/auth.guard').then(m => m.authGuard)],
+    loadComponent: () => import('./settings/settings.component').then(m => m.SettingsComponent)
+  },
+  {
+    path: 'composer',
+    canActivate: [() => import('./auth/auth.guard').then(m => m.authGuard)],
+    loadComponent: () => import('./composer/composer.component').then(m => m.ComposerComponent)
+  },
   { path: '**', redirectTo: '' }
 ];
