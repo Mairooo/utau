@@ -10,6 +10,22 @@ type DirectusLoginResponse = {
   };
 };
 
+type DirectusRegisterResponse = {
+  data: {
+    id: string;
+    email: string;
+    first_name: string;
+    last_name: string;
+  };
+};
+
+type RegisterData = {
+  email: string;
+  password: string;
+  first_name: string;
+  last_name: string;
+};
+
 const DIRECTUS_URL = (globalThis as any).DIRECTUS_URL || 'http://localhost:8055';
 const ACCESS_TOKEN_KEY = 'directus_access_token';
 const REFRESH_TOKEN_KEY = 'directus_refresh_token';
@@ -39,6 +55,20 @@ export class AuthService {
     if (!tokens?.access_token) throw new Error('Authentication failed');
 
     localStorage.setItem(ACCESS_TOKEN_KEY, tokens.access_token);
+  }
+
+  async register(data: RegisterData): Promise<DirectusRegisterResponse['data']> {
+    // Utiliser l'endpoint /users pour créer un nouvel utilisateur
+    const url = `${DIRECTUS_URL}/users`;
+    const response = await this.http
+      .post<DirectusRegisterResponse>(url, data)
+      .toPromise();
+
+    if (!response?.data) {
+      throw new Error('Échec de l\'inscription');
+    }
+
+    return response.data;
   }
 
   async logout(): Promise<void> {
