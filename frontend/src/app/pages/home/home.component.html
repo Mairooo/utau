@@ -150,6 +150,7 @@
        class="rounded-xl overflow-hidden border border-gray-200 bg-white hover:shadow-lg hover:-translate-y-1 transition-all duration-200 cursor-pointer">
        
     <div class="h-48 bg-gray-100 relative flex items-center justify-center overflow-hidden">
+      <img *ngIf="projet.coverImageUrl; else placeholder" [src]="projet.coverImageUrl" alt="Cover" class="absolute inset-0 w-full h-full object-cover" />
       <ng-template #placeholder>
         <div class="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
           <svg class="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">

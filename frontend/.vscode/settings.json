@@ -1,7 +1,0 @@
-{
-    "github.copilot.chat.commitMessageGeneration.instructions": [
-        {
-            "text" : "Génère un commit au format attendu : feat|chore|test|refactor(init|dev|deps|doc) <message>. Voici un exemple : 'feat(dev) Ajout d'une nouvelle fonctionnalité'"
-        }
-    ]
-}

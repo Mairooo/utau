@@ -2,17 +2,19 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Projects } from '../interfaces/project.interface';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class Api {
 
-  private baseUrl = 'http://127.0.0.1:8055';
+  private baseUrl = environment.directusUrl;
 
   constructor(private http: HttpClient) {}
 
   // ---------------- Auth ----------------
+  // penser à le nettoyer
 
   login(email: string, password: string): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}/auth/login`, { email, password });
@@ -22,13 +24,15 @@ export class Api {
     return this.http.post(`${this.baseUrl}/users/register`, userData);
   }
 
-  getMe(token: string): Observable<any> {
-    return this.http.get(`${this.baseUrl}/users/me`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+  getMe(token: string, fields = 'id,first_name,last_name,avatar,description'): Observable<any> {
+    const ts = Date.now();
+    return this.http.get(
+      `${this.baseUrl}/users/me?fields=${encodeURIComponent(fields)}&_=${ts}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
   }
 
-  // ---------------- Projectss ----------------
+  // ---------------- Projects ----------------
 
   getprojects(): Observable<{ data: Projects[] }> {
     return this.http.get<{ data: Projects[] }>(`${this.baseUrl}/items/Projects`);
@@ -54,6 +58,34 @@ export class Api {
     return this.http.delete(`${this.baseUrl}/items/Projects/${name}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
+  }
+
+  // --------- User-specific projects ---------
+  getUserProjects(userId: string, fields: string[]): Observable<{ data: Projects[] }> {
+    const f = encodeURIComponent(fields.join(','));
+    const ts = Date.now();
+    return this.http.get<{ data: Projects[] }>(
+      `${this.baseUrl}/items/Projects?fields=${f}&filter[user_created][_eq]=${encodeURIComponent(userId)}&_=${ts}`
+    );
+  }
+
+  countUserProjects(userId: string): Observable<{ data: []; meta?: { total_count?: number } }> {
+    const ts = Date.now();
+    return this.http.get<{ data: []; meta?: { total_count?: number } }>(
+      `${this.baseUrl}/items/Projects?limit=0&meta=total_count&filter[user_created][_eq]=${encodeURIComponent(userId)}&_=${ts}`
+    );
+  }
+
+  // ---------------- Users ----------------
+  updateUser(userId: string, data: any): Observable<{ data: unknown }> {
+    return this.http.patch<{ data: unknown }>(`${this.baseUrl}/users/${encodeURIComponent(userId)}`, data);
+  }
+
+  // ---------------- Files ----------------
+  uploadFile(file: File): Observable<{ data: { id: string } }> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<{ data: { id: string } }>(`${this.baseUrl}/files`, formData);
   }
 
 

@@ -1,8 +1,10 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, afterNextRender, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { Api } from '../../shared/services/api.service';
+import { AuthService } from '../../shared/services/auth.service';
+import { Router } from '@angular/router';
 
 type MeResponse = {
   data: {
@@ -22,7 +24,9 @@ type MeResponse = {
   styleUrls: ['./settings.component.css']
 })
 export class SettingsComponent implements OnInit {
-  private readonly http = inject(HttpClient);
+  private readonly api = inject(Api);
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
   private readonly DIRECTUS_URL: string = environment.directusUrl;
 
@@ -41,16 +45,26 @@ export class SettingsComponent implements OnInit {
     description: ['']
   });
 
-  async ngOnInit(): Promise<void> {
-    await this.loadMe();
+  constructor() {
+    afterNextRender(async () => {
+      const token = this.auth.accessToken;
+      if (!token) {
+        await this.router.navigate(['/login']);
+        return;
+      }
+      await this.loadMe();
+    });
   }
+
+  async ngOnInit(): Promise<void> {}
 
   private async loadMe(): Promise<void> {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const url = `${this.DIRECTUS_URL}/users/me?fields=id,first_name,last_name,description,avatar`;
-      const res = await this.http.get<MeResponse>(url).toPromise();
+      const token = this.auth.accessToken;
+      if (!token) return;
+      const res = await this.api.getMe(token, 'id,first_name,last_name,description,avatar').toPromise();
       const u = res?.data;
       if (!u) return;
       this.userId = u.id;
@@ -75,10 +89,8 @@ export class SettingsComponent implements OnInit {
     if (!file) return;
     this.error.set(null);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const uploadUrl = `${this.DIRECTUS_URL}/files`;
-      const uploaded = await this.http.post<{ data: { id: string } }>(uploadUrl, formData).toPromise();
+  // Utiliser Api pour l'upload
+  const uploaded = await this.api.uploadFile(file).toPromise();
       const fid = uploaded?.data?.id;
       if (fid) {
         this.avatarFileId = fid;
@@ -102,8 +114,7 @@ export class SettingsComponent implements OnInit {
         description: this.form.value.description ?? null,
       };
       if (this.avatarFileId) body.avatar = this.avatarFileId;
-      const url = `${this.DIRECTUS_URL}/users/${encodeURIComponent(this.userId)}`;
-      await this.http.patch<{ data: unknown }>(url, body).toPromise();
+  await this.api.updateUser(this.userId, body).toPromise();
       this.success.set('Modifications enregistrées.');
     } catch (e) {
       this.error.set('Impossible de sauvegarder les modifications.');

@@ -1,17 +1,14 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, afterNextRender, inject, ChangeDetectorRef } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { Api } from '../../shared/services/api.service';
+import { AuthService } from '../../shared/services/auth.service';
+import { User } from '../../shared/interfaces/user.interface';
 
-type MeResponse = {
-  data: {
-    id: string;
-    first_name?: string;
-    last_name?: string;
-    avatar?: string | { id: string } | null;
-    description?: string;
-  };
-};
+// Les réponses Directus utilisent généralement la forme { data: T }
+type DirectusItemResponse<T> = { data: T };
 
 type DirectusListResponse<T> = { data: T[]; meta?: { total_count?: number } };
 
@@ -43,63 +40,66 @@ type ProjectViewModel = {
 })
 export class ProfileComponent implements OnInit {
   private readonly http = inject(HttpClient);
+  private readonly api = inject(Api);
+  private readonly auth = inject(AuthService);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly router = inject(Router);
   private readonly DIRECTUS_URL: string = environment.directusUrl;
 
-  firstName?: string;
-  lastName?: string;
+  user?: User;
   avatarUrl?: string;
-  description?: string;
   projectCount = 0;
   private userId: string | null = null;
   projects: ProjectViewModel[] = [];
 
+  constructor() {
+    // afterNextRender doit être appelé dans un contexte d'injection (ex: constructeur)
+    afterNextRender(async () => {
+      await this.loadUser();
+  await this.loadProjectCount();
+  await this.loadProjects();
+      if (!this.userId) {
+        // Token invalide/expiré ou /users/me a échoué: renvoyer vers login
+        await this.router.navigate(['/login']);
+        return;
+      }
+      this.cdr.detectChanges();
+    });
+  }
+
   async ngOnInit(): Promise<void> {
-    const isBrowser = typeof window !== 'undefined';
-    if (!isBrowser) return;
-    await this.loadUser();
-    await this.loadProjectCount();
-    await this.loadProjects();
+    // Le chargement est déclenché dans le constructeur via afterNextRender
   }
 
   private async loadUser(): Promise<void> {
     try {
-      const url = `${this.DIRECTUS_URL}/users/me?fields=id,first_name,last_name,avatar,description`;
-      const res = await this.http.get<MeResponse>(url).toPromise();
-      const u = res?.data;
+      const token = this.auth.accessToken;
+  if (!token) return;
+  const res = await this.api.getMe(token).toPromise();
+      const u = (res as DirectusItemResponse<User & { description?: string; avatar?: string | { id: string } | null }> | undefined)?.data;
       if (!u) return;
-      this.userId = u.id;
-      this.firstName = u.first_name ?? undefined;
-      this.lastName = u.last_name ?? undefined;
-      this.description = u.description ?? undefined;
-      const avatarId = typeof u.avatar === 'string' ? u.avatar : (u.avatar && typeof u.avatar === 'object' ? u.avatar.id : undefined);
+
+  this.user = u as User;
+  this.userId = u.id;
+      const avatarId = typeof u.avatar === 'string' ? u.avatar : (u.avatar && typeof u.avatar === 'object' ? (u.avatar as any).id : undefined);
       this.avatarUrl = avatarId ? `${this.DIRECTUS_URL}/assets/${avatarId}?width=160&height=160&fit=cover&quality=80` : undefined;
-    } catch {}
+  } catch {}
   }
 
   private async loadProjectCount(): Promise<void> {
     try {
       if (!this.userId) return;
-      const url = `${this.DIRECTUS_URL}/items/Projects?limit=0&meta=total_count&filter[user_created][_eq]=${encodeURIComponent(this.userId)}`;
-      const resp = await this.http.get<DirectusListResponse<unknown>>(url).toPromise();
-      this.projectCount = resp?.meta?.total_count ?? 0;
-    } catch {}
+  const resp = await this.api.countUserProjects(this.userId).toPromise();
+  this.projectCount = resp?.meta?.total_count ?? 0;
+  } catch {}
   }
 
   private async loadProjects(): Promise<void> {
     try {
       if (!this.userId) return;
-      const fields = [
-        'id',
-        'title',
-        'description',
-        'cover_image',
-        'status',
-        'likes',
-        'plays'
-      ].join(',');
-      const url = `${this.DIRECTUS_URL}/items/Projects?fields=${encodeURIComponent(fields)}&filter[user_created][_eq]=${encodeURIComponent(this.userId)}`;
-      const resp = await this.http.get<DirectusListResponse<ProjectItem>>(url).toPromise();
-      const items = resp?.data ?? [];
+  const fields = ['id','title','description','cover_image','status','likes','plays'];
+  const resp = await this.api.getUserProjects(this.userId, fields).toPromise();
+  const items = (resp?.data ?? []) as unknown as ProjectItem[];
       this.projects = items.map((p) => {
         const coverId = typeof p.cover_image === 'string' ? p.cover_image : (p.cover_image && typeof p.cover_image === 'object' ? p.cover_image.id : undefined);
         const coverImageUrl = coverId ? `${this.DIRECTUS_URL}/assets/${coverId}?width=480&height=270&fit=cover&quality=80&format=webp` : undefined;
@@ -112,7 +112,7 @@ export class ProfileComponent implements OnInit {
           plays: p.plays
         } as ProjectViewModel;
       });
-    } catch {}
+  } catch {}
   }
 }
 
