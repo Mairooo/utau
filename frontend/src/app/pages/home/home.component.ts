@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { ProjectsService } from '../../shared/services/projet.service';
+import { ProjectsService } from '../../shared/services/project.service';
 import { Projects } from '../../shared/interfaces/project.interface';
 import { environment } from '../../../environments/environment';
 

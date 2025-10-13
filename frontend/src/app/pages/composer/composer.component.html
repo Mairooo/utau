@@ -15,8 +15,26 @@
       </div>
       <!-- Actions -->
       <div class="flex items-center gap-2">
-        <button class="h-9 px-3 rounded-md border border-gray-300 text-sm hover:bg-gray-50 transition-colors">Sauvegarder</button>
-        <button class="h-9 px-3 rounded-md bg-black text-white text-sm hover:bg-gray-800 transition-colors">Exporter</button>
+        <button (click)="newProject()" 
+                class="h-9 px-3 rounded-md border border-gray-300 text-sm hover:bg-gray-50 transition-colors">
+          Nouveau
+        </button>
+        <button (click)="openLoadDialog()" 
+                class="h-9 px-3 rounded-md border border-gray-300 text-sm hover:bg-gray-50 transition-colors">
+          Charger
+        </button>
+        <button (click)="openSaveDialog()" 
+                class="h-9 px-3 rounded-md border border-gray-300 text-sm hover:bg-gray-50 transition-colors">
+          Sauvegarder
+        </button>
+        <label class="h-9 px-3 rounded-md border border-gray-300 text-sm hover:bg-gray-50 transition-colors cursor-pointer flex items-center">
+          Importer
+          <input type="file" accept=".json" (change)="onFileImport($event)" class="hidden" />
+        </label>
+        <button (click)="exportProject()" 
+                class="h-9 px-3 rounded-md bg-black text-white text-sm hover:bg-gray-800 transition-colors">
+          Exporter
+        </button>
       </div>
     </div>
   </div>
@@ -112,5 +130,108 @@
     </div>
   </section>
 </main>
+
+<!-- Dialog Sauvegarder -->
+<div *ngIf="showSaveDialog()" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+    <h3 class="text-xl font-semibold mb-4">💾 Sauvegarder le projet</h3>
+    
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Titre *</label>
+        <input 
+          type="text" 
+          [value]="saveTitle()" 
+          (input)="saveTitle.set($any($event.target).value)"
+          class="w-full h-10 px-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          placeholder="Ma composition" />
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+        <textarea 
+          [value]="saveDescription()" 
+          (input)="saveDescription.set($any($event.target).value)"
+          class="w-full h-24 px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+          placeholder="Description de la composition..."></textarea>
+      </div>
+
+      <div class="bg-gray-50 rounded-lg p-3 text-sm">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-gray-600">Voicebank:</span>
+          <span class="font-medium">{{ selectedVoicebank()?.name || 'Aucune' }}</span>
+        </div>
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-gray-600">BPM:</span>
+          <span class="font-medium">{{ bpm() }}</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-gray-600">Notes:</span>
+          <span class="font-medium">{{ notesCount() }}</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="flex gap-2 mt-6">
+      <button 
+        (click)="closeSaveDialog()"
+        class="flex-1 h-10 px-4 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50 transition-colors">
+        Annuler
+      </button>
+      <button 
+        (click)="saveProject()"
+        class="flex-1 h-10 px-4 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 transition-colors">
+        💾 Sauvegarder
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Dialog Charger -->
+<div *ngIf="showLoadDialog()" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-xl shadow-2xl max-w-3xl w-full p-6 max-h-[80vh] flex flex-col">
+    <h3 class="text-xl font-semibold mb-4">📂 Mes projets</h3>
+    
+    <div class="flex-1 overflow-y-auto space-y-2">
+      <div *ngFor="let project of projects()" 
+           class="group p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 cursor-pointer transition-all relative">
+        <div (click)="loadProject(project)" class="flex items-start justify-between">
+          <div class="flex-1">
+            <h4 class="font-semibold text-gray-900">{{ project.title }}</h4>
+            <p class="text-sm text-gray-600 mt-1" *ngIf="project.description">{{ project.description }}</p>
+            <div class="flex gap-4 mt-2 text-xs text-gray-500">
+              <span>🎵 {{ getVoicebankName(project.primary_voicebank) }}</span>
+              <span>⏱️ {{ project.tempo }} BPM</span>
+              <span>📝 {{ getProjectNotes(project) }} notes</span>
+            </div>
+            <div class="text-xs text-gray-400 mt-1" *ngIf="project.date_updated">
+              Modifié: {{ project.date_updated | date:'short' }}
+            </div>
+          </div>
+          <button 
+            (click)="deleteProject(project, $event)"
+            class="opacity-0 group-hover:opacity-100 ml-2 p-2 text-red-500 hover:bg-red-50 rounded-lg transition-all"
+            title="Supprimer">
+            🗑️
+          </button>
+        </div>
+      </div>
+      
+      <div *ngIf="projects().length === 0" class="text-center py-12 text-gray-500">
+        <div class="text-4xl mb-2">📁</div>
+        <p>Aucun projet sauvegardé</p>
+        <p class="text-sm mt-1">Créez votre première composition !</p>
+      </div>
+    </div>
+    
+    <div class="flex gap-2 mt-6 pt-4 border-t">
+      <button 
+        (click)="closeLoadDialog()"
+        class="flex-1 h-10 px-4 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50 transition-colors">
+        Fermer
+      </button>
+    </div>
+  </div>
+</div>
 
 
