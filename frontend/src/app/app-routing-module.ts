@@ -6,6 +6,7 @@ import { RegisterComponent } from './pages/auth/register.component';
 import { ProfileComponent } from './pages/profile/profile.component';
 import { SettingsComponent } from './pages/settings/settings.component';
 import { ComposerComponent } from './pages/composer/composer.component';
+import { SearchResultsComponent } from './pages/search-results/search-results.component';
 import { authGuard } from './shared/guards/auth.guard';
 
 const routes: Routes = [
@@ -15,6 +16,7 @@ const routes: Routes = [
   { path: 'profile', component: ProfileComponent, canActivate: [authGuard] },
   { path: 'settings', component: SettingsComponent, canActivate: [authGuard] },
   { path: 'composer', component: ComposerComponent, canActivate: [authGuard] },
+  { path: 'search', component: SearchResultsComponent },
   { path: '**', redirectTo: '' }
 ];
 

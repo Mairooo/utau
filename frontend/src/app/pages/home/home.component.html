@@ -45,25 +45,17 @@
       <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900 mb-4">
         Découvrez la Communauté UTAU
       </h1>
-      <p class="text-lg text-gray-600 max-w-4xl">
+      <p class="text-lg text-gray-600 max-w-4xl mb-8">
         Explorez des milliers de créations vocales uniques, découvrez de nouveaux
         talents et laissez-vous inspirer par la créativité de la communauté.
       </p>
-
-      <!-- Search + Filters row -->
-      <div class="mt-8 flex flex-col gap-3 md:flex-row md:items-center">
-        <div class="flex-1">
-        <div class="relative">
-          <svg class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
-          </svg>
-          <input 
-            class="w-full pl-10 pr-3 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500" 
-            placeholder="Rechercher des projets, artistes, tags..." 
-          />
-        </div>
-        </div>
-        <div class="flex gap-2">
+      
+      <!-- Barre de recherche -->
+      <div class="max-w-3xl">
+        <app-search-bar></app-search-bar>
+        
+        <!-- Filters row - en dessous de la barre de recherche -->
+        <div class="mt-4 flex gap-2">
           <button class="inline-flex items-center gap-2 px-3 h-10 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.369 4.369 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z"/>
@@ -144,43 +136,42 @@
         </div>
       </div>
 
-<!-- Grid de projets -->
-<div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-  <div *ngFor="let projet of projets"
-       class="rounded-xl overflow-hidden border border-gray-200 bg-white hover:shadow-lg hover:-translate-y-1 transition-all duration-200 cursor-pointer">
-       
-    <div class="h-48 bg-gray-100 relative flex items-center justify-center overflow-hidden">
-      <img *ngIf="projet.coverImageUrl; else placeholder" [src]="projet.coverImageUrl" alt="Cover" class="absolute inset-0 w-full h-full object-cover" />
-      <ng-template #placeholder>
-        <div class="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-          <svg class="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.369 4.369 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z"/>
-          </svg>
+      <!-- Grid de projets -->
+      <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div *ngFor="let projet of projets"
+             class="rounded-xl overflow-hidden border border-gray-200 bg-white hover:shadow-lg hover:-translate-y-1 transition-all duration-200 cursor-pointer">
+             
+          <div class="h-48 bg-gray-100 relative flex items-center justify-center overflow-hidden">
+            <img *ngIf="projet.coverImageUrl; else placeholder" [src]="projet.coverImageUrl" alt="Cover" class="absolute inset-0 w-full h-full object-cover" />
+            <ng-template #placeholder>
+              <div class="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                <svg class="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.369 4.369 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z"/>
+                </svg>
+              </div>
+            </ng-template>
+          </div>
+
+          <div class="p-4">
+            <div class="font-semibold text-gray-900 mb-1">{{ projet.title }}</div>
+
+            <div class="flex items-center gap-4 mt-3 text-xs text-gray-400">
+              <span class="flex items-center gap-1">
+                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/>
+                </svg>
+                <span>{{ projet.likes ?? 0 }}</span>
+              </span>
+              <span class="flex items-center gap-1">
+                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM15.657 6.343a1 1 0 011.414 0A9.972 9.972 0 0119 12a9.972 9.972 0 01-1.929 5.657 1 1 0 11-1.414-1.414A7.971 7.971 0 0017 12a7.971 7.971 0 00-1.343-4.243 1 1 0 010-1.414z" clip-rule="evenodd"/>
+                </svg>
+                <span>{{ projet.plays ?? 0 }}</span>
+              </span>
+            </div>
+          </div>
         </div>
-      </ng-template>
-    </div>
-
-    <div class="p-4">
-      <div class="font-semibold text-gray-900 mb-1">{{ projet.title }}</div>
-
-      <div class="flex items-center gap-4 mt-3 text-xs text-gray-400">
-        <span class="flex items-center gap-1">
-          <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/>
-          </svg>
-          <span>{{ projet.likes ?? 0 }}</span>
-        </span>
-        <span class="flex items-center gap-1">
-          <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM15.657 6.343a1 1 0 011.414 0A9.972 9.972 0 0119 12a9.972 9.972 0 01-1.929 5.657 1 1 0 11-1.414-1.414A7.971 7.971 0 0017 12a7.971 7.971 0 00-1.343-4.243 1 1 0 010-1.414z" clip-rule="evenodd"/>
-          </svg>
-          <span>{{ projet.plays ?? 0 }}</span>
-        </span>
       </div>
-    </div>
-  </div>
-</div>
-
     </div>
   </section>
 </main>

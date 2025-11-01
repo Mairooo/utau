@@ -1,0 +1,154 @@
+<div class="min-h-screen bg-gray-50">
+  <!-- En-tête avec barre de recherche -->
+  <div class="bg-white border-b border-gray-200 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <app-search-bar></app-search-bar>
+      
+      <!-- Info résultats -->
+      <div *ngIf="searchQuery && !isLoading" class="mt-4">
+        <h2 class="text-2xl font-bold text-gray-900">
+          Résultats pour "<span class="text-gray-700">{{ searchQuery }}</span>"
+        </h2>
+        <div class="flex items-center gap-2 text-sm text-gray-600 mt-1">
+          <span class="font-medium">{{ totalHits }} résultat(s)</span>
+          <span class="text-gray-400">•</span>
+          <span class="text-gray-400">{{ processingTime }}ms</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Loader -->
+    <div *ngIf="isLoading" class="flex flex-col items-center justify-center py-20">
+      <div class="w-12 h-12 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin mb-4"></div>
+      <p class="text-gray-600">Recherche en cours...</p>
+    </div>
+
+    <!-- Conteneur des résultats -->
+    <div *ngIf="!isLoading">
+      <!-- Contrôles de tri -->
+      <div *ngIf="results.length > 0" class="mb-6 flex items-center justify-end gap-2">
+        <label class="text-sm font-medium text-gray-700">Trier par :</label>
+        <select 
+          [(ngModel)]="sortOption" 
+          (change)="changeSort(sortOption)"
+          class="px-4 py-2 border-2 border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
+        >
+          <option value="relevance">Pertinence</option>
+          <option value="likes_desc">Plus de likes</option>
+          <option value="plays_desc">Plus de lectures</option>
+          <option value="tempo_asc">Tempo (croissant)</option>
+          <option value="tempo_desc">Tempo (décroissant)</option>
+        </select>
+      </div>
+
+      <!-- Grille de projets (style page d'accueil) -->
+      <div *ngIf="results.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div 
+          *ngFor="let result of results"
+          (click)="goToProject(result.id)"
+          class="rounded-xl overflow-hidden border border-gray-200 bg-white hover:shadow-lg hover:-translate-y-1 transition-all duration-200 cursor-pointer"
+        >
+          <!-- Image de couverture -->
+          <div class="h-48 bg-gray-100 relative flex items-center justify-center overflow-hidden">
+            <img 
+              *ngIf="result.cover_image; else placeholder" 
+              [src]="'http://localhost:8055/assets/' + result.cover_image" 
+              [alt]="result.title"
+              class="absolute inset-0 w-full h-full object-cover" 
+            />
+            <ng-template #placeholder>
+              <div class="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                <svg class="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.369 4.369 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z"/>
+                </svg>
+              </div>
+            </ng-template>
+          </div>
+
+          <!-- Contenu de la carte -->
+          <div class="p-4">
+            <!-- Titre avec highlighting -->
+            <div 
+              class="font-semibold text-gray-900 mb-1 line-clamp-2"
+              [innerHTML]="result._formatted?.title || result.title"
+            ></div>
+
+            <!-- Créateur et voicebank -->
+            <div class="text-sm text-gray-600 mb-3">
+              <span *ngIf="result.creator">{{ result.creator }}</span>
+              <span *ngIf="result.creator && result.voicebank_name" class="text-gray-400"> • </span>
+              <span *ngIf="result.voicebank_name">{{ result.voicebank_name }}</span>
+            </div>
+
+            <!-- Stats -->
+            <div class="flex items-center gap-4 text-xs text-gray-400">
+              <span class="flex items-center gap-1">
+                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/>
+                </svg>
+                <span>{{ result.likes || 0 }}</span>
+              </span>
+              <span class="flex items-center gap-1">
+                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM15.657 6.343a1 1 0 011.414 0A9.972 9.972 0 0119 12a9.972 9.972 0 01-1.929 5.657 1 1 0 11-1.414-1.414A7.971 7.971 0 0017 12a7.971 7.971 0 00-1.343-4.243 1 1 0 010-1.414z" clip-rule="evenodd"/>
+                </svg>
+                <span>{{ result.plays || 0 }}</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Aucun résultat -->
+      <div 
+        *ngIf="results.length === 0 && searchQuery && !isLoading"
+        class="bg-white rounded-xl border border-gray-200 p-12 text-center"
+      >
+        <div class="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+          <svg class="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+          </svg>
+        </div>
+        <h3 class="text-xl font-semibold text-gray-900 mb-2">Aucun résultat trouvé</h3>
+        <p class="text-gray-600">Essayez avec d'autres mots-clés ou vérifiez l'orthographe.</p>
+      </div>
+
+      <!-- Pagination -->
+      <div *ngIf="totalPages > 1" class="flex justify-center gap-2 mt-10">
+        <button 
+          [disabled]="currentPage === 0"
+          (click)="changePage(currentPage - 1)"
+          class="w-10 h-10 flex items-center justify-center border-2 border-gray-200 rounded-lg hover:border-gray-900 hover:text-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/>
+          </svg>
+        </button>
+
+        <button
+          *ngFor="let page of pageNumbers"
+          [class.bg-gray-900]="page === currentPage"
+          [class.text-white]="page === currentPage"
+          [class.border-gray-900]="page === currentPage"
+          [class.border-gray-200]="page !== currentPage"
+          (click)="changePage(page)"
+          class="min-w-10 h-10 px-3 flex items-center justify-center border-2 rounded-lg font-medium text-sm hover:border-gray-900 hover:text-gray-900 transition-colors"
+        >
+          {{ page + 1 }}
+        </button>
+
+        <button 
+          [disabled]="currentPage >= totalPages - 1"
+          (click)="changePage(currentPage + 1)"
+          class="w-10 h-10 flex items-center justify-center border-2 border-gray-200 rounded-lg hover:border-gray-900 hover:text-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
