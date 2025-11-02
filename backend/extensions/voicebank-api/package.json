@@ -3,15 +3,20 @@
   "version": "1.0.0",
   "description": "Directus endpoint for voicebank audio files",
   "type": "module",
-  "main": "index.js",
   "keywords": [],
   "author": "",
   "license": "ISC",
   "directus:extension": {
     "type": "endpoint",
-    "path": "index.js",
-    "source": "index.js",
+    "path": "dist/index.js",
+    "source": "src/index.js",
     "host": "^11.0.0"
+  },
+  "scripts": {
+    "build": "directus-extension build"
+  },
+  "devDependencies": {
+    "@directus/extensions-sdk": "^12.0.2"
   },
   "dependencies": {
     "adm-zip": "^0.5.16"
