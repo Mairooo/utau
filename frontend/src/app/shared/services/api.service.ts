@@ -35,7 +35,7 @@ export class Api {
   // ---------------- Projects ----------------
 
   getprojects(): Observable<{ data: Projects[] }> {
-    return this.http.get<{ data: Projects[] }>(`${this.baseUrl}/items/Projects`);
+    return this.http.get<{ data: Projects[] }>(`${this.baseUrl}/items/Projects?fields=*,likes_count`);
   }
 
   createProjects(ProjectsData: any, token: string): Observable<any> {

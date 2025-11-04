@@ -7,11 +7,12 @@ import { takeUntil } from 'rxjs/operators';
 import { SearchService } from '../../shared/services/search.service';
 import { SearchResult, SearchResponse } from '../../shared/interfaces/search.interface';
 import { SearchBarComponent } from '../../shared/components/search-bar/search-bar.component';
+import { LikeButtonComponent } from '../../shared/components/like-button/like-button.component';
 
 @Component({
   selector: 'app-search-results',
   standalone: true,
-  imports: [CommonModule, FormsModule, SearchBarComponent],
+  imports: [CommonModule, FormsModule, SearchBarComponent, LikeButtonComponent],
   templateUrl: './search-results.component.html',
   styleUrls: ['./search-results.component.css']
 })

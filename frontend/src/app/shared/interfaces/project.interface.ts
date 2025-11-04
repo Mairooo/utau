@@ -3,8 +3,9 @@ export interface Projects {
   title: string;
   description?: string;
   likes?: number;
+  likes_count?: number; // Nouveau compteur de likes
   plays?: number;
   cover_image?: string;
   user_created?: { first_name?: string; last_name?: string } | string;
-  status?: string | number; // <-- ajoute cette ligne
+  status?: string | number;
 }

@@ -5,11 +5,12 @@ import { ProjectsService } from '../../shared/services/project.service';
 import { Projects } from '../../shared/interfaces/project.interface';
 import { environment } from '../../../environments/environment';
 import { SearchBarComponent } from '../../shared/components/search-bar/search-bar.component';
+import { LikeButtonComponent } from '../../shared/components/like-button/like-button.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, SearchBarComponent],
+  imports: [CommonModule, SearchBarComponent, LikeButtonComponent],
   templateUrl: './home.component.html',
 })
 export class HomeComponent implements OnInit {
