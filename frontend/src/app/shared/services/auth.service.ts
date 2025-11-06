@@ -47,14 +47,21 @@ export class AuthService {
 
   async login(email: string, password: string): Promise<void> {
     const url = `${DIRECTUS_URL}/auth/login`;
-    const response = await this.http
-      .post<DirectusLoginResponse>(url, { email, password, mode: 'json' })
-      .toPromise();
+    
+    try {
+      const response = await this.http
+        .post<DirectusLoginResponse>(url, { email, password })
+        .toPromise();
+      
+      const tokens = response?.data;
+      if (!tokens?.access_token) {
+        throw new Error('Aucun token reçu du serveur');
+      }
 
-    const tokens = response?.data;
-    if (!tokens?.access_token) throw new Error('Authentication failed');
-
-    localStorage.setItem(ACCESS_TOKEN_KEY, tokens.access_token);
+      localStorage.setItem(ACCESS_TOKEN_KEY, tokens.access_token);
+    } catch (error: any) {
+      throw new Error(error?.error?.errors?.[0]?.message || error?.message || 'Échec de la connexion');
+    }
   }
 
   async register(data: RegisterData): Promise<DirectusRegisterResponse['data']> {

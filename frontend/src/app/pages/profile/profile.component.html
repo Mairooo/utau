@@ -15,8 +15,14 @@
 
       <div class="mt-8">
         <h2 class="text-lg font-semibold text-gray-900 mb-4">Mes projets</h2>
-        <div *ngIf="projects.length === 0" class="text-gray-500">Aucun projet pour le moment.</div>
-        <div *ngIf="projects.length > 0" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        
+        <!-- Message d'erreur -->
+        <div *ngIf="errorMessage" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+          {{ errorMessage }}
+        </div>
+        
+        <div *ngIf="!errorMessage && projects.length === 0" class="text-gray-500">Aucun projet pour le moment.</div>
+        <div *ngIf="!errorMessage && projects.length > 0" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <article *ngFor="let p of projects" class="rounded-lg border border-gray-200 overflow-hidden bg-white shadow-sm">
             <div class="aspect-video bg-gray-100 overflow-hidden">
               <img *ngIf="p.coverImageUrl" [src]="p.coverImageUrl" alt="Cover" class="w-full h-full object-cover" />

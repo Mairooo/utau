@@ -18,7 +18,7 @@ type ProjectItem = {
   description?: string | null;
   cover_image?: string | { id: string } | null;
   status?: string;
-  likes?: number;
+  likes_count?: number;
   plays?: number;
 };
 
@@ -51,18 +51,21 @@ export class ProfileComponent implements OnInit {
   projectCount = 0;
   private userId: string | null = null;
   projects: ProjectViewModel[] = [];
+  errorMessage: string | null = null;
 
   constructor() {
     // afterNextRender doit être appelé dans un contexte d'injection (ex: constructeur)
     afterNextRender(async () => {
       await this.loadUser();
-  await this.loadProjectCount();
-  await this.loadProjects();
+      
       if (!this.userId) {
         // Token invalide/expiré ou /users/me a échoué: renvoyer vers login
         await this.router.navigate(['/login']);
         return;
       }
+      
+      await this.loadProjectCount();
+      await this.loadProjects();
       this.cdr.detectChanges();
     });
   }
@@ -74,16 +77,18 @@ export class ProfileComponent implements OnInit {
   private async loadUser(): Promise<void> {
     try {
       const token = this.auth.accessToken;
-  if (!token) return;
-  const res = await this.api.getMe(token).toPromise();
+      if (!token) return;
+      const res = await this.api.getMe(token).toPromise();
       const u = (res as DirectusItemResponse<User & { description?: string; avatar?: string | { id: string } | null }> | undefined)?.data;
       if (!u) return;
 
-  this.user = u as User;
-  this.userId = u.id;
+      this.user = u as User;
+      this.userId = u.id;
       const avatarId = typeof u.avatar === 'string' ? u.avatar : (u.avatar && typeof u.avatar === 'object' ? (u.avatar as any).id : undefined);
       this.avatarUrl = avatarId ? `${this.DIRECTUS_URL}/assets/${avatarId}?width=160&height=160&fit=cover&quality=80` : undefined;
-  } catch {}
+    } catch (error) {
+      console.error('Erreur lors du chargement de l\'utilisateur:', error);
+    }
   }
 
   private async loadProjectCount(): Promise<void> {
@@ -97,9 +102,9 @@ export class ProfileComponent implements OnInit {
   private async loadProjects(): Promise<void> {
     try {
       if (!this.userId) return;
-  const fields = ['id','title','description','cover_image','status','likes','plays'];
-  const resp = await this.api.getUserProjects(this.userId, fields).toPromise();
-  const items = (resp?.data ?? []) as unknown as ProjectItem[];
+      const fields = ['id','title','description','cover_image','status','likes_count','plays'];
+      const resp = await this.api.getUserProjects(this.userId, fields).toPromise();
+      const items = (resp?.data ?? []) as unknown as ProjectItem[];
       this.projects = items.map((p) => {
         const coverId = typeof p.cover_image === 'string' ? p.cover_image : (p.cover_image && typeof p.cover_image === 'object' ? p.cover_image.id : undefined);
         const coverImageUrl = coverId ? `${this.DIRECTUS_URL}/assets/${coverId}?width=480&height=270&fit=cover&quality=80&format=webp` : undefined;
@@ -108,11 +113,13 @@ export class ProfileComponent implements OnInit {
           title: p.title,
           coverImageUrl,
           status: p.status,
-          likes: p.likes,
+          likes: p.likes_count || 0,
           plays: p.plays
         } as ProjectViewModel;
       });
-  } catch {}
+    } catch (error: any) {
+      this.errorMessage = 'Erreur lors du chargement des projets.';
+    }
   }
 }
 
