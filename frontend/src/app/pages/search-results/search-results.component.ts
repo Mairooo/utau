@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { SearchService } from '../../shared/services/search.service';
@@ -12,7 +12,7 @@ import { LikeButtonComponent } from '../../shared/components/like-button/like-bu
 @Component({
   selector: 'app-search-results',
   standalone: true,
-  imports: [CommonModule, FormsModule, SearchBarComponent, LikeButtonComponent],
+  imports: [CommonModule, FormsModule, RouterModule, SearchBarComponent, LikeButtonComponent],
   templateUrl: './search-results.component.html',
   styleUrls: ['./search-results.component.css']
 })

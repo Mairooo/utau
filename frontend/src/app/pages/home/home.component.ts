@@ -1,5 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ProjectsService } from '../../shared/services/project.service';
 import { Projects } from '../../shared/interfaces/project.interface';
@@ -10,7 +10,7 @@ import { LikeButtonComponent } from '../../shared/components/like-button/like-bu
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, SearchBarComponent, LikeButtonComponent],
+  imports: [CommonModule, RouterModule, SearchBarComponent, LikeButtonComponent],
   templateUrl: './home.component.html',
 })
 export class HomeComponent implements OnInit {
