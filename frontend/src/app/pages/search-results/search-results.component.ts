@@ -8,6 +8,8 @@ import { SearchService } from '../../shared/services/search.service';
 import { SearchResult, SearchResponse } from '../../shared/interfaces/search.interface';
 import { SearchBarComponent } from '../../shared/components/search-bar/search-bar.component';
 import { LikeButtonComponent } from '../../shared/components/like-button/like-button.component';
+import { TagService } from '../../shared/services/tag.service';
+import { Tag } from '../../shared/interfaces/tag.interface';
 
 @Component({
   selector: 'app-search-results',
@@ -26,16 +28,24 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   pageSize = 20;
   sortOption = 'relevance';
   
+  // Tags disponibles et sélectionnés
+  allTags: Tag[] = [];
+  selectedTags: string[] = [];
+  
   private destroy$ = new Subject<void>();
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private searchService: SearchService,
+    private tagService: TagService,
     private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
+    // Charger tous les tags disponibles
+    this.loadTags();
+    
     // Écouter les changements de query params
     this.route.queryParams
       .pipe(
@@ -46,13 +56,34 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
         this.currentPage = parseInt(params['page'] || '0');
         this.sortOption = params['sort'] || 'relevance';
         
-        // Toujours effectuer la recherche si on a un query
-        if (this.searchQuery) {
+        // Dédupliquer les tags depuis l'URL (éviter les doublons)
+        const tagsParam = params['tags'] ? params['tags'].split(',').filter((t: string) => t.trim()) : [];
+        this.selectedTags = [...new Set<string>(tagsParam)]; // Utiliser Set pour supprimer les doublons
+        
+        // Effectuer la recherche si on a des critères (query, tags, ou tri)
+        // Note: sortOption 'relevance' avec une query vide lance quand même une recherche pour afficher tous les projets
+        if (this.searchQuery || this.selectedTags.length > 0 || this.sortOption !== 'relevance') {
           this.performSearch();
         } else {
-          // Pas de query, réinitialiser les résultats
-          this.results = [];
-          this.totalHits = 0;
+          // Aucun critère: afficher tous les projets par défaut (recherche vide)
+          this.performSearch();
+        }
+      });
+  }
+
+  /**
+   * Charger tous les tags disponibles
+   */
+  loadTags(): void {
+    this.tagService.getAllTags()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.allTags = response.data;
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('Erreur lors du chargement des tags:', error);
         }
       });
   }
@@ -66,20 +97,17 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
    * Effectuer la recherche
    */
   performSearch(): void {
-    if (!this.searchQuery) {
-      this.results = [];
-      return;
-    }
-
+    // Permettre la recherche même sans query (pour le tri et les tags)
     this.isLoading = true;
     
     const sort = this.sortOption !== 'relevance' ? this.sortOption : undefined;
 
     this.searchService.searchProjects({
-      q: this.searchQuery,
+      q: this.searchQuery || '', // Utiliser une chaîne vide si pas de query
       limit: this.pageSize,
       offset: this.currentPage * this.pageSize,
-      sort
+      sort,
+      tags: this.selectedTags.length > 0 ? this.selectedTags : undefined
     })
     .pipe(takeUntil(this.destroy$))
     .subscribe({
@@ -125,17 +153,102 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
       queryParams: { 
         q: this.searchQuery, 
         page: 0,
-        sort: option !== 'relevance' ? option : null
+        sort: option !== 'relevance' ? option : null,
+        tags: this.selectedTags.length > 0 ? this.selectedTags.join(',') : null
       },
       queryParamsHandling: 'merge'
     });
   }
 
   /**
+   * Toggle un tag dans la sélection
+   */
+  toggleTag(tagId: string): void {
+    const wasSelected = this.isTagSelected(tagId);
+    
+    if (wasSelected) {
+      // Retirer le tag
+      this.selectedTags = this.selectedTags.filter(id => String(id) !== String(tagId));
+    } else {
+      // Ajouter le tag seulement s'il n'est pas déjà présent (double protection)
+      if (!this.selectedTags.includes(String(tagId))) {
+        this.selectedTags.push(String(tagId));
+      }
+      // Effacer la recherche textuelle quand on sélectionne un tag
+      this.searchQuery = '';
+    }
+    
+    // S'assurer qu'il n'y a pas de doublons (sécurité supplémentaire)
+    this.selectedTags = [...new Set(this.selectedTags)];
+    
+    // Réinitialiser à la page 0 et mettre à jour l'URL
+    this.currentPage = 0;
+    
+    // Construire les nouveaux query params
+    const newParams: any = {
+      page: 0,
+      sort: this.sortOption !== 'relevance' ? this.sortOption : null,
+      tags: this.selectedTags.length > 0 ? this.selectedTags.join(',') : null,
+      q: this.selectedTags.length > 0 ? null : (this.searchQuery || null)
+    };
+    
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: newParams,
+      queryParamsHandling: 'merge'
+    });
+  }
+
+  /**
+   * Vérifier si un tag est sélectionné
+   */
+  isTagSelected(tagId: string): boolean {
+    // S'assurer que la comparaison est en string (sans log pour éviter le spam)
+    return this.selectedTags.includes(String(tagId));
+  }
+
+  /**
+   * Effacer tous les filtres de tags
+   */
+  clearTags(): void {
+    this.selectedTags = [];
+    this.currentPage = 0;
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { 
+        q: this.searchQuery, 
+        page: 0,
+        sort: this.sortOption !== 'relevance' ? this.sortOption : null,
+        tags: null
+      },
+      queryParamsHandling: 'merge'
+    });
+  }
+
+  /**
+   * Récupérer le nom d'un tag par son ID
+   */
+  getTagName(tagId: string): string {
+    if (!this.allTags || this.allTags.length === 0) {
+      return '...'; // Tags pas encore chargés
+    }
+    const tag = this.allTags.find(t => String(t.id) === String(tagId));
+    return tag ? tag.name : tagId; // Retourner l'ID si le tag n'existe pas
+  }
+  
+  /**
+   * Récupérer l'objet Tag complet par son ID
+   */
+  getTag(tagId: string): Tag | undefined {
+    return this.allTags.find(t => String(t.id) === String(tagId));
+  }
+
+  /**
    * Naviguer vers un projet
    */
-  goToProject(projectId: string): void {
-    this.router.navigate(['/composer', projectId]);
+  goToProject(result: SearchResult): void {
+    // Naviguer vers la page de détail du projet en utilisant le titre
+    this.router.navigate(['/project', result.title]);
   }
 
   /**

@@ -54,4 +54,5 @@ export interface SearchParams {
   voicebank?: string;
   creator?: string;
   sort?: string;
+  tags?: string[];
 }

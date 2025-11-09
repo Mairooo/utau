@@ -1,13 +1,44 @@
-<div class="container mx-auto px-4 py-8">
+<!-- Header fixe -->
+<header class="fixed top-0 left-0 right-0 z-50 w-full border-b border-gray-200 bg-white/95 backdrop-blur-sm">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex h-16 items-center justify-between">
+      <!-- Logo -->
+      <div class="flex items-center gap-3">
+        <a routerLink="/" class="flex items-center gap-2 cursor-pointer">
+          <div class="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
+            <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.369 4.369 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z"/>
+            </svg>
+          </div>
+          <span class="text-lg font-semibold text-gray-900">UTAU Community</span>
+        </a>
+      </div>
+
+      <!-- Bouton retour -->
+      <button
+        (click)="goBack()"
+        class="inline-flex items-center gap-2 text-gray-700 hover:text-gray-900 font-medium transition-colors"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+        </svg>
+        Retour
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- Contenu principal avec padding-top pour compenser le header fixe -->
+<main class="pt-16 min-h-screen bg-gray-50">
   @if (isLoading) {
-    <div class="flex justify-center items-center py-12">
+    <div class="flex justify-center items-center py-20">
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
       <span class="ml-3 text-gray-600">Chargement...</span>
     </div>
   }
 
   @if (error) {
-    <div class="text-center py-12">
+    <div class="text-center py-20">
       <div class="mx-auto h-24 w-24 bg-red-100 rounded-full flex items-center justify-center mb-4">
         <svg class="w-12 h-12 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -21,139 +52,185 @@
   }
 
   @if (project && !isLoading && !error) {
-    <!-- Bouton retour -->
-    <button
-      (click)="goBack()"
-      class="mb-6 inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors"
-    >
-      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-      </svg>
-      Retour à l'accueil
-    </button>
-
-    <div class="max-w-4xl mx-auto">
-      <div class="bg-white rounded-lg shadow-lg overflow-hidden">
-        <!-- Cover Image -->
-        @if (getCoverImageUrl(); as coverUrl) {
-          <div class="h-64 bg-gray-100 overflow-hidden">
-            <img [src]="coverUrl" [alt]="project.title" class="w-full h-full object-cover" />
-          </div>
-        } @else {
-          <div class="h-64 bg-gray-100 flex items-center justify-center">
-            <svg class="w-24 h-24 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.369 4.369 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z"/>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- Titre et métadonnées -->
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-3">{{ project.title }}</h1>
+        <div class="flex items-center gap-4 text-sm text-gray-500">
+          <div class="flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
             </svg>
+            <span>{{ getCreatorName() }}</span>
           </div>
-        }
-
-        <!-- En-tête avec informations -->
-        <div class="p-6 border-b">
-          <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center">
-              <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center mr-4">
-                <svg class="w-6 h-6 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
-                </svg>
-              </div>
-              <div>
-                <h3 class="font-semibold text-gray-900">{{ getCreatorName() }}</h3>
-                <p class="text-sm text-gray-600">{{ getRelativeTime(project.date_created || '') }}</p>
-              </div>
+          @if (project.date_updated || project.date_created) {
+            <div class="flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+              <span>{{ getRelativeTime(project.date_updated || project.date_created || '') }}</span>
             </div>
-          </div>
-
-          <!-- Titre -->
-          <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ project.title }}</h1>
-
-          <!-- Description -->
-          @if (project.description) {
-            <p class="text-gray-700 mt-4">{{ project.description }}</p>
+          }
+          @if (project.duration) {
+            <div class="flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span>{{ formatDuration(project.duration) }}</span>
+            </div>
           }
         </div>
+      </div>
 
-        <!-- Informations du projet -->
-        <div class="p-6 bg-gray-50 border-b">
-          <h3 class="text-lg font-semibold text-gray-900 mb-4">Informations</h3>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <!-- Voicebank -->
-            <div class="flex flex-col">
-              <span class="text-sm text-gray-500">Voicebank</span>
-              <span class="font-medium text-gray-900">{{ getVoicebankName() }}</span>
+      <!-- Lecteur audio (placeholder) -->
+      <div class="mb-8 bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+        <div class="flex items-center gap-6">
+          <button class="w-[72px] h-[72px] flex items-center justify-center bg-black text-white rounded-full">
+            <svg class="w-7 h-7 ml-1" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+          </button>
+          <div class="flex-1">
+            <div class="flex items-center justify-between mb-3 text-sm text-gray-500 font-medium">
+              <span>0:00</span>
+              <span>{{ formatDuration(project.duration || 0) }}</span>
             </div>
-
-            <!-- Durée -->
-            @if (project.duration) {
-              <div class="flex flex-col">
-                <span class="text-sm text-gray-500">Durée</span>
-                <span class="font-medium text-gray-900">{{ formatDuration(project.duration) }}</span>
-              </div>
-            }
-
-            <!-- Tempo -->
-            @if (project.tempo) {
-              <div class="flex flex-col">
-                <span class="text-sm text-gray-500">Tempo</span>
-                <span class="font-medium text-gray-900">{{ project.tempo }} BPM</span>
-              </div>
-            }
-
-            <!-- Tonalité -->
-            @if (project.key_signature) {
-              <div class="flex flex-col">
-                <span class="text-sm text-gray-500">Tonalité</span>
-                <span class="font-medium text-gray-900">{{ project.key_signature }}</span>
-              </div>
-            }
+            <div class="h-1.5 bg-gray-200 rounded-full cursor-pointer">
+              <div class="h-full w-0 bg-gray-900 rounded-full"></div>
+            </div>
           </div>
-        </div>
-
-        <!-- Actions et stats -->
-        <div class="p-6 border-t">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-6">
-              <!-- Likes -->
-              <div class="flex items-center space-x-2 text-gray-600">
-                <svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/>
-                </svg>
-                <span class="font-medium">{{ project.likes_count ?? project.likes ?? 0 }}</span>
-              </div>
-
-              <!-- Écoutes -->
-              <div class="flex items-center space-x-2 text-gray-600">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                </svg>
-                <span>{{ project.plays ?? 0 }} écoute(s)</span>
-              </div>
-            </div>
-
-            <!-- Partage -->
-            <button
+          <div class="flex items-center gap-3">
+            <button class="p-2.5 text-gray-600 hover:text-gray-900 transition-colors rounded-lg hover:bg-gray-100">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" clip-rule="evenodd"/>
+              </svg>
+            </button>
+            <app-like-button 
+              [projectId]="project.id" 
+              [initialLikesCount]="project.likes_count || 0">
+            </app-like-button>
+            <button 
               (click)="shareUrl()"
-              class="flex items-center space-x-2 text-gray-600 hover:text-blue-600 p-2 rounded-lg hover:bg-blue-50 transition-colors"
+              class="p-2.5 text-gray-600 hover:text-gray-900 transition-colors rounded-lg hover:bg-gray-100"
               title="Partager"
             >
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"/>
               </svg>
-              <span>Partager</span>
             </button>
+            <button class="p-2.5 text-gray-600 hover:text-gray-900 transition-colors rounded-lg hover:bg-gray-100" title="Télécharger">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Layout 2 colonnes -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Colonne gauche (2/3) -->
+        <div class="lg:col-span-2 space-y-6">
+          <!-- Description -->
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Description</h2>
+            @if (project.description) {
+              <p class="text-gray-600 leading-relaxed">{{ project.description }}</p>
+            } @else {
+              <p class="text-gray-400 italic">Aucune description disponible</p>
+            }
+          </div>
+
+          <!-- Fichiers du projet -->
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-2">Fichiers du projet</h2>
+            <p class="text-sm text-gray-500 mb-5">Téléchargez les fichiers sources de ce projet</p>
+            
+            <div class="space-y-3">
+              <!-- Fichier UTAU principal -->
+              <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-white border border-gray-200 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-gray-700" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.369 4.369 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <p class="font-medium text-gray-900">{{ project.title }}.ust</p>
+                    <p class="text-sm text-gray-600">Fichier UTAU principal</p>
+                  </div>
+                </div>
+                <button class="p-2 text-gray-600 hover:text-gray-900 transition-colors">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Colonne droite (1/3) -->
+        <div class="space-y-6">
+          <!-- Statistiques -->
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-5">Statistiques</h2>
+            <div class="space-y-3.5">
+              <div class="flex items-center justify-between">
+                <span class="text-gray-500">Écoutes</span>
+                <span class="font-bold text-gray-900 text-lg">{{ project.plays ?? 0 }}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-gray-500">Likes</span>
+                <span class="font-bold text-gray-900 text-lg">{{ project.likes_count ?? project.likes ?? 0 }}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-gray-500">Téléchargements</span>
+                <span class="font-bold text-gray-900 text-lg">89</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Détails techniques -->
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-5">Détails techniques</h2>
+            <div class="space-y-3.5">
+              @if (project.tempo) {
+                <div class="flex items-center justify-between">
+                  <span class="text-gray-500">Tempo</span>
+                  <span class="font-semibold text-gray-900">{{ project.tempo }} BPM</span>
+                </div>
+              }
+              @if (project.key_signature) {
+                <div class="flex items-center justify-between">
+                  <span class="text-gray-500">Tonalité</span>
+                  <span class="font-semibold text-gray-900">{{ project.key_signature }}</span>
+                </div>
+              }
+              @if (project.duration) {
+                <div class="flex items-center justify-between">
+                  <span class="text-gray-500">Durée</span>
+                  <span class="font-semibold text-gray-900">{{ formatDuration(project.duration) }}</span>
+                </div>
+              }
+            </div>
           </div>
 
           <!-- Tags -->
           @if (project.tags && project.tags.length > 0) {
-            <div class="mt-6">
-              <h4 class="text-sm font-medium text-gray-900 mb-2">Tags :</h4>
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+              <div class="flex items-center gap-2 mb-4">
+                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                </svg>
+                <h2 class="text-xl font-bold text-gray-900">Tags</h2>
+              </div>
               <div class="flex flex-wrap gap-2">
                 @for (tagRelation of project.tags; track tagRelation.Tags_id?.id) {
                   @if (tagRelation.Tags_id) {
-                    <app-tag-chip
-                      [tag]="tagRelation.Tags_id"
-                      class="inline-block"
-                    ></app-tag-chip>
+                    <span class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors cursor-pointer">
+                      {{ tagRelation.Tags_id.name }}
+                    </span>
                   }
                 }
               </div>
@@ -163,4 +240,4 @@
       </div>
     </div>
   }
-</div>
+</main>

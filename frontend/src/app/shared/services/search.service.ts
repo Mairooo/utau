@@ -40,6 +40,9 @@ export class SearchService {
     if (params.sort) {
       httpParams = httpParams.set('sort', params.sort);
     }
+    if (params.tags && params.tags.length > 0) {
+      httpParams = httpParams.set('tags', params.tags.join(','));
+    }
 
     return this.http.get<SearchResponse>(`${this.apiUrl}/projects`, { params: httpParams });
   }

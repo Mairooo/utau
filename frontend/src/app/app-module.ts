@@ -1,6 +1,6 @@
 import { NgModule, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { HttpClientModule, provideHttpClient, withInterceptors } from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { authInterceptor } from './shared/interceptors/auth.interceptor';
@@ -13,15 +13,14 @@ import { ProjectDetailComponent } from './pages/project-detail/project-detail.co
 @NgModule({
   declarations: [
     App,
-    TagChip,
-    ProjectDetailComponent
+    TagChip
   ],
   imports: [
     BrowserModule,
     CommonModule,
     AppRoutingModule,
-    HttpClientModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    ProjectDetailComponent
   ],
   providers: [
     provideBrowserGlobalErrorListeners(),

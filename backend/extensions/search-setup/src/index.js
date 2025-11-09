@@ -32,7 +32,7 @@ export default (router, { env, services, exceptions }) => {
 
       // Configuration de l'index
       const searchableAttributes = ['title', 'searchable_content', 'description', 'creator', 'voicebank_name'];
-      const filterableAttributes = ['voicebank_id', 'creator_id', 'status', 'tempo', 'key_signature'];
+      const filterableAttributes = ['voicebank_id', 'creator_id', 'status', 'tempo', 'key_signature', 'tag_ids'];
       const sortableAttributes = ['likes_count', 'plays', 'tempo', 'duration'];
 
       await Promise.all([
@@ -50,7 +50,7 @@ export default (router, { env, services, exceptions }) => {
 
       const projects = await projectsService.readByQuery({
         filter: { status: { _eq: '1' } }, // '1' = published
-        fields: ['*'],
+        fields: ['*', 'tags.Tags_id'],
         limit: -1
       });
 
@@ -96,6 +96,15 @@ export default (router, { env, services, exceptions }) => {
             }
           }
 
+          // Récupérer les IDs des tags associés au projet
+          let tag_ids = [];
+          if (project.tags && Array.isArray(project.tags)) {
+            // Si project.tags est un tableau d'objets de la table de jonction
+            tag_ids = project.tags
+              .map(t => t.Tags_id)
+              .filter(id => id); // Filtrer les valeurs nulles/undefined
+          }
+
           documents.push({
             id: project.id,
             title: project.title || '',
@@ -112,7 +121,8 @@ export default (router, { env, services, exceptions }) => {
             likes_count: parseInt(project.likes_count) || 0,
             status: project.status,
             collection: 'projects',
-            cover_image: project.cover_image || null
+            cover_image: project.cover_image || null,
+            tag_ids
           });
         } catch (error) {
           console.error(`Erreur transformation projet ${project.id}:`, error.message);

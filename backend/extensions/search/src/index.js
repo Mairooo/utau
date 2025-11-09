@@ -34,7 +34,7 @@ export default (router, { env, services, exceptions }) => {
         throw error;
       }
 
-      const { q, limit = 20, offset = 0, voicebank, creator, sort } = req.query;
+      const { q, limit = 20, offset = 0, voicebank, creator, sort, tags } = req.query;
 
       const searchOptions = {
         limit: parseInt(limit),
@@ -55,6 +55,17 @@ export default (router, { env, services, exceptions }) => {
       if (creator) {
         filters.push(`creator_id = "${creator}"`);
       }
+      
+      // Filtrage par tags (support de plusieurs tags)
+      if (tags) {
+        const tagIds = tags.split(',').map(t => t.trim()).filter(t => t);
+        if (tagIds.length > 0) {
+          // Pour chaque tag sélectionné, ajouter un filtre séparé (AND implicite)
+          tagIds.forEach(tagId => {
+            filters.push(`tag_ids = "${tagId}"`);
+          });
+        }
+      }
 
       if (filters.length > 0) {
         searchOptions.filter = filters.join(' AND ');
@@ -64,10 +75,14 @@ export default (router, { env, services, exceptions }) => {
       if (sort) {
         const sortOptions = [];
         sort.split(',').forEach(s => {
-          if (s.endsWith('_asc')) {
-            sortOptions.push(s.replace('_asc', ':asc'));
-          } else if (s.endsWith('_desc')) {
-            sortOptions.push(s.replace('_desc', ':desc'));
+          // Remplacer "likes" par "likes_count" (alias frontend -> backend)
+          let sortField = s.replace('likes_asc', 'likes_count_asc')
+                           .replace('likes_desc', 'likes_count_desc');
+          
+          if (sortField.endsWith('_asc')) {
+            sortOptions.push(sortField.replace('_asc', ':asc'));
+          } else if (sortField.endsWith('_desc')) {
+            sortOptions.push(sortField.replace('_desc', ':desc'));
           }
         });
         if (sortOptions.length > 0) {

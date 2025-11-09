@@ -1,12 +1,15 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ProjectsService } from '../../shared/services/project.service';
 import { Projects } from '../../shared/interfaces/project.interface';
 import { environment } from '../../../environments/environment';
+import { LikeButtonComponent } from '../../shared/components/like-button/like-button.component';
 
 @Component({
   selector: 'app-project-detail',
-  standalone: false,
+  standalone: true,
+  imports: [CommonModule, RouterModule, LikeButtonComponent],
   templateUrl: './project-detail.component.html',
   styleUrl: './project-detail.component.css'
 })
@@ -102,8 +105,14 @@ export class ProjectDetailComponent implements OnInit {
   }
 
   getRelativeTime(date: string): string {
+    if (!date) return '';
+    
     const now = new Date();
     const projectDate = new Date(date);
+    
+    // Vérifier si la date est valide
+    if (isNaN(projectDate.getTime())) return '';
+    
     const diffInSeconds = Math.floor((now.getTime() - projectDate.getTime()) / 1000);
 
     if (diffInSeconds < 60) return 'À l\'instant';

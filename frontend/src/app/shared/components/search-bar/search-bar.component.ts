@@ -32,9 +32,14 @@ export class SearchBarComponent implements OnInit, OnDestroy {
     this.route.queryParams
       .pipe(takeUntil(this.destroy$))
       .subscribe(params => {
-        const query = params['q'];
-        if (query && query !== this.searchControl.value) {
+        const query = params['q'] || '';
+        if (query !== this.searchControl.value) {
           this.searchControl.setValue(query, { emitEvent: false });
+        }
+        // Si la query est vide (tags sélectionnés), vider les suggestions
+        if (!query) {
+          this.suggestions = [];
+          this.showSuggestions = false;
         }
       });
 
@@ -103,7 +108,8 @@ export class SearchBarComponent implements OnInit, OnDestroy {
    * Sélectionner une suggestion
    */
   selectSuggestion(suggestion: SearchSuggestion): void {
-    this.router.navigate(['/projects', suggestion.id]);
+    // Naviguer vers la page de détail du projet en utilisant le titre
+    this.router.navigate(['/project', suggestion.title]);
     this.searchControl.setValue('');
     this.showSuggestions = false;
   }
