@@ -151,6 +151,148 @@ updateProjectsById(ProjectsId: string, ProjectsData: any, token: string): Observ
   });
 }
 
+// ---------------- Project Stats ----------------
+
+incrementProjectStats(ProjectsId: string, field: 'plays' | 'downloads'): Observable<any> {
+  // Récupérer d'abord la valeur actuelle
+  return new Observable(observer => {
+    this.http.get(`${this.baseUrl}/items/Projects/${ProjectsId}?fields=${field}`).subscribe({
+      next: (response: any) => {
+        const currentValue = response.data?.[field] || 0;
+        const token = localStorage.getItem('directus_access_token');
+        
+        // Préparer les headers (avec ou sans token)
+        const headers: any = { 'Content-Type': 'application/json' };
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        // Incrémenter (fonctionne même sans token si les permissions Public le permettent)
+        this.http.patch(`${this.baseUrl}/items/Projects/${ProjectsId}`, 
+          { [field]: currentValue + 1 },
+          { headers }
+        ).subscribe({
+          next: (result) => observer.next(result),
+          error: (err) => observer.error(err)
+        });
+      },
+      error: (err) => observer.error(err)
+    });
+  });
+}
+
+// ---------------- Project Plays (tracking) ----------------
+
+/**
+ * Vérifie si l'utilisateur actuel a déjà écouté ce projet
+ * @param projectId ID du projet
+ * @returns Observable<boolean> - true si déjà écouté, false sinon
+ */
+checkUserPlay(projectId: string): Observable<boolean> {
+  return new Observable(observer => {
+    const token = localStorage.getItem('directus_access_token');
+    
+    if (!token) {
+      // Utilisateur non authentifié, on considère qu'il n'a pas écouté
+      observer.next(false);
+      observer.complete();
+      return;
+    }
+
+    // Récupérer l'ID de l'utilisateur actuel
+    this.getMe(token, 'id').subscribe({
+      next: (userResponse: any) => {
+        const userId = userResponse.data?.id;
+        
+        if (!userId) {
+          observer.next(false);
+          observer.complete();
+          return;
+        }
+
+        // Vérifier si une entrée existe déjà dans project_plays
+        const filter = `filter[user_id][_eq]=${userId}&filter[project_id][_eq]=${projectId}`;
+        this.http.get(`${this.baseUrl}/items/project_plays?${filter}&limit=1`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }).subscribe({
+          next: (response: any) => {
+            const hasPlayed = response.data && response.data.length > 0;
+            observer.next(hasPlayed);
+            observer.complete();
+          },
+          error: (err) => {
+            console.error('Erreur lors de la vérification du play:', err);
+            observer.next(false);
+            observer.complete();
+          }
+        });
+      },
+      error: (err) => {
+        console.error('Erreur lors de la récupération de l\'utilisateur:', err);
+        observer.next(false);
+        observer.complete();
+      }
+    });
+  });
+}
+
+/**
+ * Enregistre qu'un utilisateur a écouté un projet
+ * @param projectId ID du projet
+ * @returns Observable<any>
+ */
+recordUserPlay(projectId: string): Observable<any> {
+  return new Observable(observer => {
+    const token = localStorage.getItem('directus_access_token');
+    
+    if (!token) {
+      // Utilisateur non authentifié, on n'enregistre pas
+      observer.error('Utilisateur non authentifié');
+      return;
+    }
+
+    // Récupérer l'ID de l'utilisateur actuel
+    this.getMe(token, 'id').subscribe({
+      next: (userResponse: any) => {
+        const userId = userResponse.data?.id;
+        
+        if (!userId) {
+          observer.error('ID utilisateur introuvable');
+          return;
+        }
+
+        // Créer l'entrée dans project_plays
+        const playData = {
+          user_id: userId,
+          project_id: projectId,
+          date_played: new Date().toISOString()
+        };
+
+        this.http.post(`${this.baseUrl}/items/project_plays`, playData, {
+          headers: { Authorization: `Bearer ${token}` }
+        }).subscribe({
+          next: (result) => {
+            observer.next(result);
+            observer.complete();
+          },
+          error: (err) => {
+            // Si l'erreur est due à une contrainte unique (doublon), on l'ignore
+            if (err.status === 400 || err.status === 409) {
+              console.warn('Play déjà enregistré pour cet utilisateur/projet');
+              observer.next(null);
+              observer.complete();
+            } else {
+              observer.error(err);
+            }
+          }
+        });
+      },
+      error: (err) => {
+        observer.error(err);
+      }
+    });
+  });
+}
 
 
 }

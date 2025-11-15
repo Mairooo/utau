@@ -5,6 +5,7 @@ import { ProjectsService } from '../../shared/services/project.service';
 import { Projects } from '../../shared/interfaces/project.interface';
 import { environment } from '../../../environments/environment';
 import { LikeButtonComponent } from '../../shared/components/like-button/like-button.component';
+import { Api } from '../../shared/services/api.service';
 
 @Component({
   selector: 'app-project-detail',
@@ -18,6 +19,7 @@ export class ProjectDetailComponent implements OnInit {
   isLoading = true;
   error = '';
   private readonly DIRECTUS_URL = environment.directusUrl;
+  private hasPlayedInSession = false;
 
   // Lecteur audio
   isPlaying = false;
@@ -37,6 +39,7 @@ export class ProjectDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private projectService: ProjectsService,
+    private api: Api,
     private cd: ChangeDetectorRef
   ) {}
 
@@ -120,6 +123,14 @@ export class ProjectDetailComponent implements OnInit {
   downloadAudio(): void {
     if (!this.project?.rendered_audio) return;
 
+    const token = localStorage.getItem('directus_access_token');
+    if (!token) {
+      alert('Vous devez être connecté pour télécharger');
+      return;
+    }
+
+    this.incrementDownloads();
+
     const url = `${this.DIRECTUS_URL}/assets/${this.project.rendered_audio}?download`;
     const link = document.createElement('a');
     link.href = url;
@@ -136,8 +147,137 @@ export class ProjectDetailComponent implements OnInit {
       this.audio.pause();
     } else {
       this.audio.play();
+      // Incrémenter les écoutes seulement au premier play
+      this.incrementPlays();
     }
     this.isPlaying = !this.isPlaying;
+  }
+
+  private incrementPlays(): void {
+    if (!this.project?.id) return;
+
+    const token = localStorage.getItem('directus_access_token');
+    
+    // Bloquer les invités (utilisateurs non authentifiés)
+    if (!token) {
+      return;
+    }
+
+    // Vérifier le flag local en premier
+    if (this.hasPlayedInSession) {
+      return;
+    }
+
+    // Vérifier d'abord si l'utilisateur a déjà écouté ce projet
+    this.api.checkUserPlay(this.project.id).subscribe({
+      next: (hasPlayed) => {
+        if (hasPlayed) {
+          this.hasPlayedInSession = true;
+          return; // L'utilisateur a déjà écouté ce projet
+        }
+        
+        // Marquer immédiatement comme joué pour éviter les doubles clics
+        this.hasPlayedInSession = true;
+        
+        // L'utilisateur n'a pas encore écouté, on enregistre le play
+        this.api.recordUserPlay(this.project!.id).subscribe({
+          next: () => {
+            // Puis on incrémente le compteur
+            this.api.incrementProjectStats(this.project!.id, 'plays').subscribe({
+              next: () => {
+                if (this.project) {
+                  this.project.plays = (this.project.plays || 0) + 1;
+                  this.cd.detectChanges();
+                }
+              },
+              error: (err) => console.error('Erreur lors de l\'incrémentation des écoutes:', err)
+            });
+          },
+          error: (err) => {
+            console.error('Erreur lors de l\'enregistrement du play:', err);
+            // Réinitialiser le flag en cas d'erreur
+            this.hasPlayedInSession = false;
+          }
+        });
+      },
+      error: (err) => {
+        console.error('Erreur lors de la vérification du play:', err);
+        // En cas d'erreur de vérification, on ne fait rien (pas d'incrémentation)
+      }
+    });
+  }
+
+  downloadUSTFile(): void {
+    if (!this.project) return;
+
+    const token = localStorage.getItem('directus_access_token');
+    if (!token) {
+      alert('Vous devez être connecté pour télécharger');
+      return;
+    }
+
+    this.incrementDownloads();
+
+    // Récupérer les données de composition depuis le projet
+    const projectData = this.project as any;
+    const compositionData = projectData.composition_data;
+
+    if (!compositionData) {
+      alert('Aucune donnée de composition disponible');
+      return;
+    }
+
+    // Convertir les données en format JSON
+    let notes;
+    if (typeof compositionData === 'string') {
+      try {
+        notes = JSON.parse(compositionData);
+      } catch (e) {
+        console.error('Erreur lors du parsing de la composition:', e);
+        alert('Erreur lors de la lecture des données de composition');
+        return;
+      }
+    } else {
+      notes = compositionData;
+    }
+
+    // Créer un objet avec toutes les données nécessaires pour réimporter
+    const utauData = {
+      title: this.project.title,
+      description: this.project.description || '',
+      tempo: this.project.tempo || 120,
+      notes: notes,
+      voicebank: projectData.primary_voicebank?.name || '',
+      voicebankId: projectData.primary_voicebank?.id || ''
+    };
+
+    // Créer le fichier .utau (format JSON)
+    const blob = new Blob([JSON.stringify(utauData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    // Créer un lien de téléchargement et le déclencher
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${this.project.title}.utau`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  private incrementDownloads(): void {
+    if (!this.project?.id) return;
+
+    // Pour les téléchargements, on compte chaque fois (pas de limite)
+    // Car chaque téléchargement est un engagement réel de l'utilisateur
+    this.api.incrementProjectStats(this.project.id, 'downloads').subscribe({
+      next: () => {
+        if (this.project) {
+          this.project.downloads = (this.project.downloads || 0) + 1;
+        }
+      },
+      error: (err) => console.error('Erreur lors de l\'incrémentation des téléchargements:', err)
+    });
   }
 
   seek(event: Event): void {
@@ -237,55 +377,5 @@ export class ProjectDetailComponent implements OnInit {
         alert('Lien copié dans le presse-papier !');
       });
     }
-  }
-
-  downloadUSTFile(): void {
-    if (!this.project) return;
-
-    // Récupérer les données de composition depuis le projet
-    const projectData = this.project as any;
-    const compositionData = projectData.composition_data;
-
-    if (!compositionData) {
-      alert('Aucune donnée de composition disponible');
-      return;
-    }
-
-    // Convertir les données en format JSON
-    let notes;
-    if (typeof compositionData === 'string') {
-      try {
-        notes = JSON.parse(compositionData);
-      } catch (e) {
-        console.error('Erreur lors du parsing de la composition:', e);
-        alert('Erreur lors de la lecture des données de composition');
-        return;
-      }
-    } else {
-      notes = compositionData;
-    }
-
-    // Créer un objet avec toutes les données nécessaires pour réimporter
-    const utauData = {
-      title: this.project.title,
-      description: this.project.description || '',
-      tempo: this.project.tempo || 120,
-      notes: notes,
-      voicebank: projectData.primary_voicebank?.name || '',
-      voicebankId: projectData.primary_voicebank?.id || ''
-    };
-
-    // Créer le fichier .utau (format JSON)
-    const blob = new Blob([JSON.stringify(utauData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    
-    // Créer un lien de téléchargement et le déclencher
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${this.project.title}.utau`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
   }
 }

@@ -5,6 +5,7 @@ export interface Projects {
   likes?: number;
   likes_count?: number; // Nouveau compteur de likes
   plays?: number;
+  downloads?: number;
   cover_image?: string;
   rendered_audio?: string; // Fichier audio rendu
   user_created?: { first_name?: string; last_name?: string; email?: string; id?: string } | string;

@@ -59,6 +59,7 @@ export class AuthService {
       }
 
       localStorage.setItem(ACCESS_TOKEN_KEY, tokens.access_token);
+      sessionStorage.clear(); // Nettoyer les sessions de plays
     } catch (error: any) {
       throw new Error(error?.error?.errors?.[0]?.message || error?.message || 'Échec de la connexion');
     }
@@ -90,6 +91,7 @@ export class AuthService {
     }
 
     localStorage.removeItem(ACCESS_TOKEN_KEY);
+    sessionStorage.clear(); // Nettoyer les sessions de plays
     await this.router.navigate(['/login']);
   }
 }
