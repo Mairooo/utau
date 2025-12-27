@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, HostListener, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ProjectsService } from '../../shared/services/project.service';
@@ -19,6 +19,7 @@ export class ProjectDetailComponent implements OnInit {
   project: Projects | null = null;
   isLoading = true;
   error = '';
+  showShareMenu = false;
   private readonly DIRECTUS_URL = environment.directusUrl;
   private hasPlayedInSession = false;
 
@@ -41,8 +42,17 @@ export class ProjectDetailComponent implements OnInit {
     private router: Router,
     private projectService: ProjectsService,
     private api: Api,
-    private cd: ChangeDetectorRef
+    private cd: ChangeDetectorRef,
+    private elementRef: ElementRef
   ) {}
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const shareContainer = document.getElementById('share-menu-container');
+    if (this.showShareMenu && shareContainer && !shareContainer.contains(event.target as Node)) {
+      this.showShareMenu = false;
+    }
+  }
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {
@@ -363,6 +373,61 @@ export class ProjectDetailComponent implements OnInit {
 
   goBack(): void {
     this.router.navigate(['/']);
+  }
+
+  toggleShareMenu(): void {
+    this.showShareMenu = !this.showShareMenu;
+  }
+
+  private getShareUrl(): string {
+    return window.location.href;
+  }
+
+  private getShareText(): string {
+    return `Découvrez "${this.project?.title}" sur UTAU Community !`;
+  }
+
+  shareOnTwitter(): void {
+    const url = encodeURIComponent(this.getShareUrl());
+    const text = encodeURIComponent(this.getShareText());
+    window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank', 'width=600,height=400');
+    this.showShareMenu = false;
+  }
+
+  shareOnFacebook(): void {
+    const url = encodeURIComponent(this.getShareUrl());
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank', 'width=600,height=400');
+    this.showShareMenu = false;
+  }
+
+  shareOnWhatsApp(): void {
+    const url = encodeURIComponent(this.getShareUrl());
+    const text = encodeURIComponent(this.getShareText());
+    window.open(`https://wa.me/?text=${text}%20${url}`, '_blank');
+    this.showShareMenu = false;
+  }
+
+  shareOnTelegram(): void {
+    const url = encodeURIComponent(this.getShareUrl());
+    const text = encodeURIComponent(this.getShareText());
+    window.open(`https://t.me/share/url?url=${url}&text=${text}`, '_blank');
+    this.showShareMenu = false;
+  }
+
+  shareOnDiscord(): void {
+    // Discord n'a pas d'API de partage direct, on copie le lien formaté pour Discord
+    const text = `${this.getShareText()}\n${this.getShareUrl()}`;
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Lien copié ! Collez-le dans Discord.');
+      this.showShareMenu = false;
+    });
+  }
+
+  copyLink(): void {
+    navigator.clipboard.writeText(this.getShareUrl()).then(() => {
+      alert('Lien copié !');
+      this.showShareMenu = false;
+    });
   }
 
   shareUrl(): void {
