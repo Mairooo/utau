@@ -5,12 +5,13 @@ import { ProjectsService } from '../../shared/services/project.service';
 import { Projects } from '../../shared/interfaces/project.interface';
 import { environment } from '../../../environments/environment';
 import { LikeButtonComponent } from '../../shared/components/like-button/like-button.component';
+import { CommentSectionComponent } from '../../shared/components/comment-section/comment-section.component';
 import { Api } from '../../shared/services/api.service';
 
 @Component({
   selector: 'app-project-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, LikeButtonComponent],
+  imports: [CommonModule, RouterModule, LikeButtonComponent, CommentSectionComponent],
   templateUrl: './project-detail.component.html',
   styleUrl: './project-detail.component.css'
 })
