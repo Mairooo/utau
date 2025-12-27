@@ -6,6 +6,7 @@ import { environment } from '../../../environments/environment';
 import { Api } from '../../shared/services/api.service';
 import { AuthService } from '../../shared/services/auth.service';
 import { User } from '../../shared/interfaces/user.interface';
+import { NotificationBellComponent } from '../../shared/components/notification-bell/notification-bell.component';
 
 // Les réponses Directus utilisent généralement la forme { data: T }
 type DirectusItemResponse<T> = { data: T };
@@ -37,7 +38,7 @@ type ProjectViewModel = {
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, NotificationBellComponent],
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.css']
 })

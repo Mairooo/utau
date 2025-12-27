@@ -6,11 +6,12 @@ import { Projects } from '../../shared/interfaces/project.interface';
 import { environment } from '../../../environments/environment';
 import { SearchBarComponent } from '../../shared/components/search-bar/search-bar.component';
 import { LikeButtonComponent } from '../../shared/components/like-button/like-button.component';
+import { NotificationBellComponent } from '../../shared/components/notification-bell/notification-bell.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterModule, SearchBarComponent, LikeButtonComponent],
+  imports: [CommonModule, RouterModule, SearchBarComponent, LikeButtonComponent, NotificationBellComponent],
   templateUrl: './home.component.html',
 })
 export class HomeComponent implements OnInit {

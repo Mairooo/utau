@@ -7,11 +7,12 @@ import { CompositionService, ProjectData } from '../../shared/services/compositi
 import { Note, PHONEME_MAP, PITCH_LIST } from '../../shared/models/composer.model';
 import { AudioRendererService } from '../../shared/services/audio-renderer.service';
 import { Api } from '../../shared/services/api.service';
+import { NotificationBellComponent } from '../../shared/components/notification-bell/notification-bell.component';
 
 @Component({
   selector: 'app-composer',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, NotificationBellComponent],
   templateUrl: './composer.component.html',
   styleUrls: ['./composer.component.css']
 })

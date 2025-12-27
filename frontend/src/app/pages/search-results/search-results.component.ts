@@ -8,13 +8,14 @@ import { SearchService } from '../../shared/services/search.service';
 import { SearchResult, SearchResponse } from '../../shared/interfaces/search.interface';
 import { SearchBarComponent } from '../../shared/components/search-bar/search-bar.component';
 import { LikeButtonComponent } from '../../shared/components/like-button/like-button.component';
+import { NotificationBellComponent } from '../../shared/components/notification-bell/notification-bell.component';
 import { TagService } from '../../shared/services/tag.service';
 import { Tag } from '../../shared/interfaces/tag.interface';
 
 @Component({
   selector: 'app-search-results',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, SearchBarComponent, LikeButtonComponent],
+  imports: [CommonModule, FormsModule, RouterModule, SearchBarComponent, LikeButtonComponent, NotificationBellComponent],
   templateUrl: './search-results.component.html',
   styleUrls: ['./search-results.component.css']
 })
