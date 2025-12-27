@@ -74,23 +74,48 @@ export default {
           fields: ['first_name', 'last_name', 'email'] 
         });
 
-        // 4. Envoyer notification WebSocket personnalisée (si disponible)
-        if (req.services?.websocket) {
-          req.services.websocket.broadcast('like_notification', {
-            type: 'like_event',
-            action: action,
-            project: {
-              id: updatedProject.id,
-              title: updatedProject.title,
-              likes: updatedProject.likes_count,
-              author: updatedProject.user_created
-            },
-            user: {
-              name: `${currentUser.first_name} ${currentUser.last_name}`,
-              email: currentUser.email
-            },
-            timestamp: new Date().toISOString()
+        // 4. Créer une notification pour le propriétaire du projet (seulement pour les likes)
+        if (action === 'liked') {
+          // Récupérer l'ID du propriétaire du projet
+          const projectOwner = await projectsService.readOne(project_id, {
+            fields: ['user_created']
           });
+          
+          logger.info(`Project owner data: ${JSON.stringify(projectOwner)}`);
+          
+          const ownerId = typeof projectOwner.user_created === 'object' 
+            ? projectOwner.user_created.id 
+            : projectOwner.user_created;
+
+          logger.info(`Owner ID: ${ownerId}, Current user ID: ${user_id}, Same? ${ownerId === user_id}`);
+
+          // Ne pas notifier si l'utilisateur like son propre projet
+          if (ownerId && ownerId !== user_id) {
+            try {
+              const notificationsService = new ItemsService('notifications', { 
+                schema, 
+                knex: database
+              });
+
+              logger.info(`Creating notification for user ${ownerId}...`);
+
+              const notifId = await notificationsService.createOne({
+                user_id: ownerId,
+                message: `${currentUser.first_name} ${currentUser.last_name} a aimé votre projet "${updatedProject.title}"`,
+                project_id: project_id,
+                event_type: 'nouveau_like',
+                status: 'non_lu',
+                triggered_by: user_id
+              });
+
+              logger.info(`Notification créée (ID: ${notifId}) pour user ${ownerId} - Like sur projet ${project_id}`);
+            } catch (notifError) {
+              logger.error('Erreur création notification:', notifError.message);
+              logger.error('Stack:', notifError.stack);
+            }
+          } else {
+            logger.info(`Notification skipped: ownerId=${ownerId}, user_id=${user_id}`);
+          }
         }
 
         logger.info(`Like action: ${action} - Project ${project_id} by user ${user_id}`);
