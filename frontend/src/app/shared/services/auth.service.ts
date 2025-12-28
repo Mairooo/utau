@@ -26,6 +26,9 @@ type RegisterData = {
   last_name: string;
 };
 
+// ID du rôle "Authenticated User" configuré dans Directus
+const DEFAULT_USER_ROLE = 'a543341f-6f8d-4928-b48d-ba39003f4a9f';
+
 import { environment } from '../../../environments/environment';
 const DIRECTUS_URL = environment.directusUrl;
 const ACCESS_TOKEN_KEY = 'directus_access_token';
@@ -66,10 +69,13 @@ export class AuthService {
   }
 
   async register(data: RegisterData): Promise<DirectusRegisterResponse['data']> {
-    // Utiliser l'endpoint /users pour créer un nouvel utilisateur
+    // Utiliser l'endpoint /users pour créer un nouvel utilisateur avec le rôle par défaut
     const url = `${DIRECTUS_URL}/users`;
     const response = await this.http
-      .post<DirectusRegisterResponse>(url, data)
+      .post<DirectusRegisterResponse>(url, {
+        ...data,
+        role: DEFAULT_USER_ROLE
+      })
       .toPromise();
 
     if (!response?.data) {

@@ -41,33 +41,37 @@ export class HomeComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.loadProjects();
     
-    // Connecter au WebSocket et s'abonner aux changements
-    this.wsService.connect();
-    this.wsService.subscribe('Projects');
-    this.wsService.subscribe('Likes');
+    // Connecter au WebSocket seulement si l'utilisateur est connecté
+    if (this.isLoggedIn) {
+      this.wsService.connect();
+      this.wsService.subscribe('Projects');
+      this.wsService.subscribe('Likes');
 
-    // Écouter les changements de projets en temps réel
-    this.wsSubscriptions.push(
-      this.wsService.onCollection('Projects').subscribe((msg) => {
-        console.log('📨 Projet changé:', msg.event);
-        this.refreshStats();
-      })
-    );
+      // Écouter les changements de projets en temps réel
+      this.wsSubscriptions.push(
+        this.wsService.onCollection('Projects').subscribe((msg) => {
+          console.log('📨 Projet changé:', msg.event);
+          this.refreshStats();
+        })
+      );
 
-    // Écouter les changements de likes en temps réel
-    this.wsSubscriptions.push(
-      this.wsService.onCollection('Likes').subscribe((msg) => {
-        console.log('❤️ Like changé:', msg.event);
-        this.refreshStats();
-      })
-    );
+      // Écouter les changements de likes en temps réel
+      this.wsSubscriptions.push(
+        this.wsService.onCollection('Likes').subscribe((msg) => {
+          console.log('❤️ Like changé:', msg.event);
+          this.refreshStats();
+        })
+      );
+    }
   }
 
   ngOnDestroy() {
     // Nettoyer les subscriptions
     this.wsSubscriptions.forEach(sub => sub.unsubscribe());
-    this.wsService.unsubscribe('Projects');
-    this.wsService.unsubscribe('Likes');
+    if (this.isLoggedIn) {
+      this.wsService.unsubscribe('Projects');
+      this.wsService.unsubscribe('Likes');
+    }
   }
 
   private loadProjects() {

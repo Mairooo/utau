@@ -66,9 +66,29 @@ export class RegisterComponent {
       }, 2000);
 
     } catch (e: any) {
-      this.error.set(e?.message ?? 'Échec de l\'inscription');
+      const message = e?.message ?? 'Échec de l\'inscription';
+      this.error.set(this.translateError(message));
     } finally {
       this.loading.set(false);
     }
+  }
+
+  private translateError(message: string): string {
+    const translations: Record<string, string> = {
+      'Invalid payload. "email" must be a valid email.': 'L\'email doit être une adresse email valide.',
+      '"email" must be a valid email': 'L\'email doit être une adresse email valide.',
+      'Field "email" has to be unique.': 'Cet email est déjà utilisé.',
+      '"password" is required': 'Le mot de passe est requis.',
+      '"email" is required': 'L\'email est requis.',
+      '"first_name" is required': 'Le prénom est requis.',
+      '"last_name" is required': 'Le nom est requis.',
+      '"password" is not allowed to be empty': 'Le mot de passe ne peut pas être vide.',
+    };
+    
+    for (const [key, value] of Object.entries(translations)) {
+      if (message.includes(key)) return value;
+    }
+    
+    return message;
   }
 }

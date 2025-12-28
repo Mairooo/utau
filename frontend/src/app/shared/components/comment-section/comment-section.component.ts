@@ -406,27 +406,47 @@ export class CommentSectionComponent implements OnInit {
   deleteComment(commentId: number): void {
     if (!confirm('Supprimer ce commentaire ?')) return;
     
-    this.commentService.deleteComment(commentId).subscribe({
-      next: () => {
-        // Vérifier si c'est un commentaire principal
-        const isMainComment = this.comments().some(c => c.id === commentId);
-        
-        if (isMainComment) {
-          // Supprimer le commentaire principal
-          this.comments.set(this.comments().filter(c => c.id !== commentId));
-        } else {
-          // C'est une réponse, la supprimer du parent
-          const updatedComments = this.comments().map(c => {
-            if (c.replies) {
-              c.replies = c.replies.filter(r => r.id !== commentId);
-            }
-            return c;
-          });
-          this.comments.set([...updatedComments]);
-        }
-      },
-      error: (err) => console.error('Erreur suppression:', err)
-    });
+    // Vérifier si c'est un commentaire principal avec des réponses
+    const mainComment = this.comments().find(c => c.id === commentId);
+    
+    if (mainComment && mainComment.replies && mainComment.replies.length > 0) {
+      // Supprimer d'abord toutes les réponses
+      const deleteReplies = mainComment.replies.map(reply => 
+        this.commentService.deleteComment(reply.id).toPromise()
+      );
+      
+      Promise.all(deleteReplies).then(() => {
+        // Puis supprimer le commentaire principal
+        this.commentService.deleteComment(commentId).subscribe({
+          next: () => {
+            this.comments.set(this.comments().filter(c => c.id !== commentId));
+          },
+          error: (err) => console.error('Erreur suppression:', err)
+        });
+      }).catch(err => console.error('Erreur suppression réponses:', err));
+    } else {
+      // Suppression simple (pas de réponses ou c'est une réponse)
+      this.commentService.deleteComment(commentId).subscribe({
+        next: () => {
+          // Vérifier si c'est un commentaire principal
+          const isMainComment = this.comments().some(c => c.id === commentId);
+          
+          if (isMainComment) {
+            this.comments.set(this.comments().filter(c => c.id !== commentId));
+          } else {
+            // C'est une réponse, la supprimer du parent
+            const updatedComments = this.comments().map(c => {
+              if (c.replies) {
+                c.replies = c.replies.filter(r => r.id !== commentId);
+              }
+              return c;
+            });
+            this.comments.set([...updatedComments]);
+          }
+        },
+        error: (err) => console.error('Erreur suppression:', err)
+      });
+    }
   }
 
   canDelete(comment: Comment): boolean {

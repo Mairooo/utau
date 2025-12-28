@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
 
 export interface ProjectData {
   id?: string;
@@ -32,34 +32,29 @@ export interface Note {
 })
 export class CompositionService {
   private readonly apiUrl = 'http://localhost:8055';
-  private currentUserId: string | null = null;
 
-  constructor(private http: HttpClient) {
-    // Récupérer l'ID de l'utilisateur connecté au démarrage
-    this.getCurrentUser();
-  }
+  constructor(private http: HttpClient) {}
 
   /**
-   * Récupérer l'utilisateur connecté
+   * Récupérer l'ID de l'utilisateur connecté (à chaque appel)
    */
-  private getCurrentUser(): void {
+  private getCurrentUserId(): Observable<string | null> {
     const token = localStorage.getItem('directus_access_token');
     if (!token) {
-      console.warn('No token found, user_created will not be set automatically');
-      return;
+      return new Observable(observer => {
+        observer.next(null);
+        observer.complete();
+      });
     }
 
-    this.http.get<any>(`${this.apiUrl}/users/me`, {
-      headers: { Authorization: `Bearer ${token}` }
-    }).subscribe({
-      next: (response) => {
-        this.currentUserId = response.data?.id;
-        console.log('Current user ID:', this.currentUserId);
-      },
-      error: (err) => {
-        console.error('Error getting current user:', err);
-      }
-    });
+    return this.http.get<any>(`${this.apiUrl}/users/me?fields=id`).pipe(
+      map(response => {
+        // Directus retourne { data: { id: ... } } ou directement { id: ... }
+        const userId = response.data?.id || response.id || null;
+        console.log('getCurrentUserId response:', response, 'userId:', userId);
+        return userId;
+      })
+    );
   }
 
   /**
@@ -131,6 +126,29 @@ export class CompositionService {
     notes: Note[];
     audioFileId?: string;
   }): Observable<ProjectData> {
+    // Si c'est une mise à jour, pas besoin de récupérer l'user
+    if (projectId) {
+      return this.saveCompositionInternal(projectId, data, null);
+    }
+    
+    // Pour une création, récupérer l'utilisateur courant d'abord
+    return this.getCurrentUserId().pipe(
+      switchMap(userId => this.saveCompositionInternal(projectId, data, userId))
+    );
+  }
+
+  private saveCompositionInternal(
+    projectId: string | undefined, 
+    data: {
+      title: string;
+      description?: string;
+      tempo: number;
+      voicebankId: string;
+      notes: Note[];
+      audioFileId?: string;
+    },
+    currentUserId: string | null
+  ): Observable<ProjectData> {
     // Directus attend un objet JSON, pas une string
     const payload: any = {
       title: data.title,
@@ -148,8 +166,11 @@ export class CompositionService {
     // Lors de la création uniquement : définir le status et l'utilisateur
     if (!projectId) {
       payload.status = '1'; // 1 = published (pour que ce soit visible)
-      if (this.currentUserId) {
-        payload.user_created = this.currentUserId;
+      if (currentUserId) {
+        payload.user_created = currentUserId;
+        console.log('Setting user_created to:', currentUserId);
+      } else {
+        console.warn('No currentUserId available for user_created');
       }
     }
     // Lors de la mise à jour : ne pas toucher au status (garder celui existant)

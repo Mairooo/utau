@@ -62,8 +62,12 @@
               </div>
               <!-- Sinon, afficher le sélecteur -->
               <select *ngIf="!isProjectSaved()" class="w-full h-10 px-3 rounded-md border border-gray-300 bg-white"
-                      (change)="onSelectVoicebank(voicebanks()[$any($event.target).selectedIndex])">
-                <option *ngFor="let vb of voicebanks()" [value]="vb.id">{{ vb.name }}</option>
+                      (change)="onSelectVoicebankById($any($event.target).value)">
+                <option *ngFor="let vb of voicebanks()" 
+                        [value]="vb.id"
+                        [selected]="vb.id === selectedVoicebank()?.id">
+                  {{ vb.name }}
+                </option>
               </select>
             </div>
 

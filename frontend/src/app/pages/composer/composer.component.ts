@@ -98,6 +98,13 @@ export class ComposerComponent implements OnInit {
     this.voicebankService.selectVoicebank(voicebank);
   }
 
+  onSelectVoicebankById(id: string): void {
+    const voicebank = this.voicebanks().find(vb => vb.id === id);
+    if (voicebank) {
+      this.onSelectVoicebank(voicebank);
+    }
+  }
+
   onSelectPhoneme(phoneme: string): void {
     this.selectedPhoneme.set(phoneme);
   }
@@ -403,7 +410,6 @@ export class ComposerComponent implements OnInit {
     this.projectTitle.set(project.title);
     this.projectDescription.set(project.description || '');
     this.bpm.set(project.tempo);
-    this.isProjectSaved.set(true); // Le projet est sauvegardé
     
     // Charger les notes
     console.log('Composition data:', project.composition_data);
@@ -422,7 +428,14 @@ export class ComposerComponent implements OnInit {
       if (voicebank) {
         this.onSelectVoicebank(voicebank);
         this.projectVoicebank.set(voicebank); // Fixer la voicebank au projet
+        this.isProjectSaved.set(true); // Le projet est sauvegardé avec une voicebank
+      } else {
+        // Voicebank non trouvée, permettre de choisir
+        this.isProjectSaved.set(false);
       }
+    } else {
+      // Pas de voicebank définie, permettre de choisir
+      this.isProjectSaved.set(false);
     }
 
     this.closeLoadDialog();

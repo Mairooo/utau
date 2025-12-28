@@ -11,6 +11,7 @@ import { LikeButtonComponent } from '../../shared/components/like-button/like-bu
 import { NotificationBellComponent } from '../../shared/components/notification-bell/notification-bell.component';
 import { TagService } from '../../shared/services/tag.service';
 import { Tag } from '../../shared/interfaces/tag.interface';
+import { AuthService } from '../../shared/services/auth.service';
 
 @Component({
   selector: 'app-search-results',
@@ -33,6 +34,9 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   allTags: Tag[] = [];
   selectedTags: string[] = [];
   
+  // État de connexion
+  isLoggedIn = false;
+  
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -40,8 +44,11 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     private router: Router,
     private searchService: SearchService,
     private tagService: TagService,
+    private authService: AuthService,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) {
+    this.isLoggedIn = !!this.authService.accessToken;
+  }
 
   ngOnInit(): void {
     // Charger tous les tags disponibles

@@ -10,15 +10,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const isBrowser = typeof window !== 'undefined' && typeof localStorage !== 'undefined';
   const token = isBrowser ? localStorage.getItem(ACCESS_TOKEN_KEY) : null;
+  
+  // Si pas de token, on laisse passer sans redirection (accès public)
   if (!token) {
-    return next(req).pipe(
-      catchError((err: HttpErrorResponse) => {
-        if (err.status === 401 || err.status === 403) {
-          router.navigate(['/login']);
-        }
-        return throwError(() => err);
-      })
-    );
+    return next(req);
   }
 
   const authReq = req.clone({

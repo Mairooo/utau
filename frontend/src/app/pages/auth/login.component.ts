@@ -32,10 +32,31 @@ export class LoginComponent {
       await this.auth.login(this.email, this.password);
       await this.router.navigateByUrl('/');
     } catch (e: any) {
-      this.error.set(e?.message ?? 'Échec de la connexion');
+      // Traduire les messages d'erreur courants
+      const message = e?.message ?? 'Échec de la connexion';
+      this.error.set(this.translateError(message));
     } finally {
       this.loading.set(false);
     }
+  }
+
+  private translateError(message: string): string {
+    const translations: Record<string, string> = {
+      'Invalid payload. "email" must be a valid email.': 'L\'email doit être une adresse email valide.',
+      'Invalid user credentials.': 'Identifiants incorrects.',
+      'Invalid credentials.': 'Identifiants incorrects.',
+      '"password" is required': 'Le mot de passe est requis.',
+      '"email" is required': 'L\'email est requis.',
+      '"password" is not allowed to be empty': 'Le mot de passe ne peut pas être vide.',
+      '"email" is not allowed to be empty': 'L\'email ne peut pas être vide.',
+    };
+    
+    // Chercher une traduction exacte ou partielle
+    for (const [key, value] of Object.entries(translations)) {
+      if (message.includes(key)) return value;
+    }
+    
+    return message;
   }
 }
 
