@@ -1,92 +1,53 @@
-# 🎵 Teto-on UTAU Editor
+# Teto-on UTAU Editor - Frontend
 
-Plateforme de création et partage de compositions musicales UTAU.
+Frontend Angular pour la plateforme de creation et partage de compositions musicales UTAU.
 
-**Stack** : Angular 19 + Directus 11 + Meilisearch
+**Stack** : Angular 19 + TailwindCSS
 
-## 🚀 Installation
-
-### Backend
+## Installation
 
 ```bash
-cd backend
-npm install
-cp .env.example .env
-# Configurer le .env
-```
-
-### Frontend
-
-```bash
-cd frontend
 npm install
 ```
 
-## ▶️ Lancement
+## Lancement
 
 ```bash
-# Terminal 1 - Meilisearch
-cd backend && ./meilisearch --master-key="dev-meilisearch-key-123"
-
-# Terminal 2 - Directus
-cd backend && npx directus start
-
-# Terminal 3 - Angular
-cd frontend && npm start
+npm start
 ```
 
-| Service | URL |
-|---------|-----|
-| Frontend | http://localhost:4200 |
-| API Directus | http://localhost:8055 |
-| Admin Directus | http://localhost:8055/admin |
+Application disponible sur http://localhost:4200
 
-## 📁 Structure
+## Structure
 
 ```
-mon-projet-utau/
-├── backend/
-│   ├── extensions/
-│   │   ├── like-manager/        # Toggle like/unlike
-│   │   ├── voicebank-api/       # Extraction audio ZIP
-│   │   ├── search/              # Recherche Meilisearch
-│   │   ├── search-setup/        # Config Meilisearch
-│   │   ├── notifications-api/   # Notifications utilisateur
-│   │   ├── oauth/               # OAuth GitHub
-│   │   └── meilisearch-sync/    # Sync auto
-│   ├── migrations/
-│   ├── uploads/
-│   ├── data.db                  # Base SQLite
-│   └── .env.example
-│
-└── frontend/
-    └── src/app/
-        ├── pages/
-        │   ├── auth/            # Login/Register
-        │   ├── home/            # Accueil
-        │   ├── composer/        # Éditeur composition
-        │   ├── search-results/  # Résultats recherche
-        │   ├── project-detail/  # Détail projet
-        │   ├── project-edit/    # Édition projet
-        │   ├── profile/         # Profil utilisateur
-        │   └── settings/        # Paramètres
-        └── shared/
-            ├── components/      # Composants réutilisables
-            ├── services/        # Services API
-            ├── guards/          # Auth guards
-            ├── interceptors/    # HTTP interceptors
-            ├── models/          # Modèles données
-            └── interfaces/      # Types TypeScript
+src/app/
+├── pages/
+│   ├── auth/            # Login/Register
+│   ├── home/            # Accueil
+│   ├── composer/        # Editeur composition
+│   ├── search-results/  # Resultats recherche
+│   ├── project-detail/  # Detail projet
+│   ├── project-edit/    # Edition projet
+│   ├── profile/         # Profil utilisateur
+│   └── settings/        # Parametres
+└── shared/
+    ├── components/      # Composants reutilisables
+    ├── services/        # Services API
+    ├── guards/          # Auth guards
+    ├── interceptors/    # HTTP interceptors
+    ├── models/          # Modeles donnees
+    └── interfaces/      # Types TypeScript
 ```
 
-## ✨ Fonctionnalités
+## Fonctionnalites
 
-- **Compositions** : Création, édition, publication de projets musicaux
-- **Recherche** : Full-text avec Meilisearch, filtres par tags/voicebanks
-- **Social** : Likes, compteur de lectures, notifications
-- **Auth** : JWT + OAuth GitHub
-- **Temps réel** : WebSocket pour mises à jour en direct
+- Compositions : Creation, edition, publication de projets musicaux
+- Recherche : Full-text avec Meilisearch, filtres par tags/voicebanks
+- Social : Likes, compteur de lectures, notifications
+- Auth : JWT + OAuth GitHub
+- Temps reel : WebSocket pour mises a jour en direct
 
-## 👤 Auteur
+## Auteur
 
-Maïro Febourg - Janvier 2026
+Mairo Frebourg - Janvier 2026
