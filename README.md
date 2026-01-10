@@ -62,4 +62,4 @@ src/app/
 
 ## Auteur
 
-Mairo Frebourg - Janvier 2026
+Maïro Frebourg - Janvier 2026
